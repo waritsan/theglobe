@@ -65,7 +65,7 @@ module api './app/api-appservice-avm.bicep' = {
   params: {
     name: !empty(apiServiceName) ? apiServiceName : '${abbrs.webSitesAppService}api-${resourceToken}'
     location: location
-    tags: tags
+    tags: union(tags, { 'azd-service-name': 'api' })
     kind: 'functionapp'
     appServicePlanId: appServicePlan.outputs.resourceId
     appSettings: {
