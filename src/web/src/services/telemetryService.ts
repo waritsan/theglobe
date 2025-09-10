@@ -16,7 +16,6 @@ export const getApplicationInsights = (): ApplicationInsights => {
 
     // Check if connection string is valid before initializing
     if (!config.observability.connectionString || config.observability.connectionString.trim() === '') {
-        console.warn("ApplicationInsights connection string is not configured. Telemetry will be disabled.");
         // Return a mock ApplicationInsights object to prevent errors
         return {
             trackEvent: () => {},
