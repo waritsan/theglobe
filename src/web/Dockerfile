@@ -5,6 +5,10 @@ WORKDIR /app
 
 COPY . .
 
+# Set environment variables for build
+ENV VITE_API_BASE_URL=http://localhost:3100
+ENV VITE_APPLICATIONINSIGHTS_CONNECTION_STRING=
+
 # install project dependencies
 RUN npm ci
 RUN npm run build

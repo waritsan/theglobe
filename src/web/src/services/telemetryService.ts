@@ -14,11 +14,45 @@ export const getApplicationInsights = (): ApplicationInsights => {
         return applicationInsights;
     }
 
+    // Check if connection string is valid before initializing
+    if (!config.observability.connectionString || config.observability.connectionString.trim() === '') {
+        console.warn("ApplicationInsights connection string is not configured. Telemetry will be disabled.");
+        // Return a mock ApplicationInsights object to prevent errors
+        return {
+            trackEvent: () => {},
+            trackException: () => {},
+            trackTrace: () => {},
+            trackMetric: () => {},
+            trackDependency: () => {},
+            trackRequest: () => {},
+            trackPageView: () => {},
+            startTrackEvent: () => {},
+            stopTrackEvent: () => {},
+            addTelemetryInitializer: () => {},
+            loadAppInsights: () => {},
+            unload: () => {},
+            flush: () => {},
+            setAuthenticatedUserContext: () => {},
+            clearAuthenticatedUserContext: () => {},
+            trackPageViewPerformance: () => {},
+            config: {},
+            context: {},
+            queue: [],
+            extensions: [],
+            extensionConfig: {},
+            channel: {
+                queue: [],
+                flush: () => {},
+                unload: () => {}
+            }
+        } as any;
+    }
+
     const ApplicationInsightsConfig: Snippet = {
         config: {
             connectionString: config.observability.connectionString,
             enableCorsCorrelation: true,
-            distributedTracingMode: DistributedTracingModes.W3C, 
+            distributedTracingMode: DistributedTracingModes.W3C,
             extensions: [plugin],
             extensionConfig: {
                 [plugin.identifier]: { history: browserHistory }

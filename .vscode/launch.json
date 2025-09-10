@@ -7,9 +7,9 @@
         {
             "name": "Debug Web",
             "request": "launch",
-            "type": "msedge",
+            "type": "chrome",
             "webRoot": "${workspaceFolder}/src/web/src",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:5174",
             "sourceMapPathOverrides": {
                 "webpack:///src/*": "${webRoot}/*"
             },
@@ -17,13 +17,13 @@
 
         {
             "name": "Debug API",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "cwd": "${workspaceFolder}/src/api",
             "args": [
                 "todo.app:app",
-                "--port", "3100",
+                "--port", "3101",
                 "--reload"
             ],
             "justMyCode": true,
