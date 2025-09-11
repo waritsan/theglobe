@@ -8,186 +8,235 @@ from fastapi import HTTPException, Response
 from starlette.requests import Request
 
 from .app import app
-from .models import (CreateUpdateTodoItem, CreateUpdateTodoList, TodoItem,
-                     TodoList, TodoState)
+from .models import (BlogPost, Category, Comment, CreateUpdateBlogPost,
+                     CreateUpdateCategory, CreateUpdateComment)
 
 
-@app.get("/lists", response_model=List[TodoList], response_model_by_alias=False)
-async def get_lists(
+# Category routes
+@app.get("/categories", response_model=List[Category], response_model_by_alias=False)
+async def get_categories(
     top: Optional[int] = None, skip: Optional[int] = None
-) -> List[TodoList]:
+) -> List[Category]:
     """
-    Get all Todo lists
+    Get all categories
 
     Optional arguments:
-
-    - **top**: Number of lists to return
-    - **skip**: Number of lists to skip
+    - **top**: Number of categories to return
+    - **skip**: Number of categories to skip
     """
-    query = TodoList.all().skip(skip).limit(top)
+    query = Category.all().skip(skip).limit(top)
     return await query.to_list()
 
 
-@app.post("/lists", response_model=TodoList, response_model_by_alias=False, status_code=201)
-async def create_list(body: CreateUpdateTodoList, request: Request, response: Response) -> TodoList:
+@app.post("/categories", response_model=Category, response_model_by_alias=False, status_code=201)
+async def create_category(body: CreateUpdateCategory, request: Request, response: Response) -> Category:
     """
-    Create a new Todo list
+    Create a new category
     """
-    todo_list = await TodoList(**body.dict(), createdDate=datetime.utcnow()).save()
-    response.headers["Location"] = urljoin(str(request.base_url), "lists/{0}".format(str(todo_list.id)))
-    return todo_list
+    category = await Category(**body.dict(), createdDate=datetime.utcnow()).save()
+    response.headers["Location"] = urljoin(str(request.base_url), f"categories/{category.id}")
+    return category
 
 
-@app.get("/lists/{list_id}", response_model=TodoList, response_model_by_alias=False)
-async def get_list(list_id: PydanticObjectId) -> TodoList:
+@app.get("/categories/{category_id}", response_model=Category, response_model_by_alias=False)
+async def get_category(category_id: PydanticObjectId) -> Category:
     """
-    Get Todo list by ID
+    Get category by ID
     """
-    todo_list = await TodoList.get(document_id=list_id)
-    if not todo_list:
-        raise HTTPException(status_code=404, detail="Todo list not found")
-    return todo_list
+    category = await Category.get(document_id=category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    return category
 
 
-@app.put("/lists/{list_id}", response_model=TodoList, response_model_by_alias=False)
-async def update_list(
-    list_id: PydanticObjectId, body: CreateUpdateTodoList
-) -> TodoList:
+@app.put("/categories/{category_id}", response_model=Category, response_model_by_alias=False)
+async def update_category(
+    category_id: PydanticObjectId, body: CreateUpdateCategory
+) -> Category:
     """
-    Updates a Todo list by unique identifier
+    Updates a category by unique identifier
     """
-    todo_list = await TodoList.get(document_id=list_id)
-    if not todo_list:
-        raise HTTPException(status_code=404, detail="Todo list not found")
-    await todo_list.update({"$set": body.dict(exclude_unset=True)})
-    todo_list.updatedDate = datetime.utcnow()
-    return await todo_list.save()
+    category = await Category.get(document_id=category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    await category.update({"$set": body.dict(exclude_unset=True)})
+    category.updatedDate = datetime.utcnow()
+    return await category.save()
 
 
-@app.delete("/lists/{list_id}", response_class=Response, status_code=204)
-async def delete_list(list_id: PydanticObjectId) -> None:
+@app.delete("/categories/{category_id}", response_class=Response, status_code=204)
+async def delete_category(category_id: PydanticObjectId) -> None:
     """
-    Deletes a Todo list by unique identifier
+    Deletes a category by unique identifier
     """
-    todo_list = await TodoList.get(document_id=list_id)
-    if not todo_list:
-        raise HTTPException(status_code=404, detail="Todo list not found")
-    await todo_list.delete()
+    category = await Category.get(document_id=category_id)
+    if not category:
+        raise HTTPException(status_code=404, detail="Category not found")
+    await category.delete()
 
 
-@app.post("/lists/{list_id}/items", response_model=TodoItem, response_model_by_alias=False, status_code=201)
-async def create_list_item(
-    list_id: PydanticObjectId, body: CreateUpdateTodoItem, request: Request, response: Response
-) -> TodoItem:
-    """
-    Creates a new Todo item within a list
-    """
-    item = TodoItem(listId=list_id, **body.dict(), createdDate=datetime.utcnow())
-    response.headers["Location"] = urljoin(str(request.base_url), "lists/{0}/items/{1}".format(str(list_id), str(item.id)))
-    return await item.save()
-
-
-@app.get("/lists/{list_id}/items", response_model=List[TodoItem], response_model_by_alias=False)
-async def get_list_items(
-    list_id: PydanticObjectId,
+# Blog post routes
+@app.get("/posts", response_model=List[BlogPost], response_model_by_alias=False)
+async def get_posts(
+    published: Optional[bool] = None,
+    category_id: Optional[PydanticObjectId] = None,
     top: Optional[int] = None,
-    skip: Optional[int] = None,
-) -> List[TodoItem]:
+    skip: Optional[int] = None
+) -> List[BlogPost]:
     """
-    Gets Todo items within the specified list
+    Get all blog posts
 
     Optional arguments:
-
-    - **top**: Number of lists to return
-    - **skip**: Number of lists to skip
+    - **published**: Filter by published status
+    - **category_id**: Filter by category
+    - **top**: Number of posts to return
+    - **skip**: Number of posts to skip
     """
-    query = TodoItem.find(TodoItem.listId == list_id).skip(skip).limit(top)
+    query = BlogPost.all()
+
+    if published is not None:
+        query = query.find(BlogPost.published == published)
+
+    if category_id:
+        query = query.find(BlogPost.categoryId == category_id)
+
+    query = query.skip(skip).limit(top)
     return await query.to_list()
 
 
-@app.get("/lists/{list_id}/items/state/{state}", response_model=List[TodoItem], response_model_by_alias=False)
-async def get_list_items_by_state(
-    list_id: PydanticObjectId,
-    state: TodoState = ...,
-    top: Optional[int] = None,
-    skip: Optional[int] = None,
-) -> List[TodoItem]:
+@app.post("/posts", response_model=BlogPost, response_model_by_alias=False, status_code=201)
+async def create_post(body: CreateUpdateBlogPost, request: Request, response: Response) -> BlogPost:
     """
-    Gets a list of Todo items of a specific state
+    Create a new blog post
+    """
+    post_data = body.dict()
+    if body.published and not body.publishedDate:
+        post_data["publishedDate"] = datetime.utcnow()
+
+    post = await BlogPost(**post_data, createdDate=datetime.utcnow()).save()
+    response.headers["Location"] = urljoin(str(request.base_url), f"posts/{post.id}")
+    return post
+
+
+@app.get("/posts/{post_id}", response_model=BlogPost, response_model_by_alias=False)
+async def get_post(post_id: PydanticObjectId) -> BlogPost:
+    """
+    Get blog post by ID
+    """
+    post = await BlogPost.get(document_id=post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    return post
+
+
+@app.put("/posts/{post_id}", response_model=BlogPost, response_model_by_alias=False)
+async def update_post(
+    post_id: PydanticObjectId, body: CreateUpdateBlogPost
+) -> BlogPost:
+    """
+    Updates a blog post by unique identifier
+    """
+    post = await BlogPost.get(document_id=post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+
+    update_data = body.dict(exclude_unset=True)
+    if body.published and not post.publishedDate:
+        update_data["publishedDate"] = datetime.utcnow()
+
+    await post.update({"$set": update_data})
+    post.updatedDate = datetime.utcnow()
+    return await post.save()
+
+
+@app.delete("/posts/{post_id}", response_class=Response, status_code=204)
+async def delete_post(post_id: PydanticObjectId) -> None:
+    """
+    Deletes a blog post by unique identifier
+    """
+    post = await BlogPost.get(document_id=post_id)
+    if not post:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    await post.delete()
+
+
+# Comment routes
+@app.get("/posts/{post_id}/comments", response_model=List[Comment], response_model_by_alias=False)
+async def get_post_comments(
+    post_id: PydanticObjectId,
+    approved: Optional[bool] = None,
+    top: Optional[int] = None,
+    skip: Optional[int] = None
+) -> List[Comment]:
+    """
+    Get comments for a specific blog post
 
     Optional arguments:
-
-    - **top**: Number of lists to return
-    - **skip**: Number of lists to skip
+    - **approved**: Filter by approval status
+    - **top**: Number of comments to return
+    - **skip**: Number of comments to skip
     """
-    query = (
-        TodoItem.find(TodoItem.listId == list_id, TodoItem.state == state)
-        .skip(skip)
-        .limit(top)
+    query = Comment.find(Comment.postId == post_id)
+
+    if approved is not None:
+        query = query.find(Comment.approved == approved)
+
+    query = query.skip(skip).limit(top)
+    return await query.to_list()
+
+
+@app.post("/posts/{post_id}/comments", response_model=Comment, response_model_by_alias=False, status_code=201)
+async def create_comment(
+    post_id: PydanticObjectId,
+    body: CreateUpdateComment,
+    request: Request,
+    response: Response
+) -> Comment:
+    """
+    Create a new comment for a blog post
+    """
+    comment = await Comment(
+        postId=post_id,
+        **body.dict(),
+        createdDate=datetime.utcnow()
+    ).save()
+    response.headers["Location"] = urljoin(str(request.base_url), f"posts/{post_id}/comments/{comment.id}")
+    return comment
+
+
+@app.put("/posts/{post_id}/comments/{comment_id}", response_model=Comment, response_model_by_alias=False)
+async def update_comment(
+    post_id: PydanticObjectId,
+    comment_id: PydanticObjectId,
+    body: CreateUpdateComment
+) -> Comment:
+    """
+    Updates a comment by unique identifier
+    """
+    comment = await Comment.find_one(
+        Comment.id == comment_id,
+        Comment.postId == post_id
     )
-    return await query.to_list()
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+
+    await comment.update({"$set": body.dict(exclude_unset=True)})
+    comment.updatedDate = datetime.utcnow()
+    return await comment.save()
 
 
-@app.put("/lists/{list_id}/items/state/{state}", response_model=List[TodoItem], response_model_by_alias=False)
-async def update_list_items_state(
-    list_id: PydanticObjectId,
-    state: TodoState = ...,
-    body: List[str] = None,
-) -> List[TodoItem]:
-    """
-    Changes the state of the specified list items
-    """
-    if not body:
-        raise HTTPException(status_code=400, detail="No items specified")
-    results = []    
-    for id_ in body:
-        item = await TodoItem.get(document_id=id_)
-        if not item:
-            raise HTTPException(status_code=404, detail="Todo item not found")
-        item.state = state
-        item.updatedDate = datetime.utcnow()
-        results.append(await item.save())
-    return results
-
-
-@app.get("/lists/{list_id}/items/{item_id}", response_model=TodoItem, response_model_by_alias=False)
-async def get_list_item(
-    list_id: PydanticObjectId, item_id: PydanticObjectId
-) -> TodoItem:
-    """
-    Gets a Todo item by unique identifier
-    """
-    item = await TodoItem.find_one(TodoItem.listId == list_id, TodoItem.id == item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Todo item not found")
-    return item
-
-
-@app.put("/lists/{list_id}/items/{item_id}", response_model=TodoItem, response_model_by_alias=False)
-async def update_list_item(
-    list_id: PydanticObjectId,
-    item_id: PydanticObjectId,
-    body: CreateUpdateTodoItem,
-) -> TodoItem:
-    """
-    Updates a Todo item by unique identifier
-    """
-    item = await TodoItem.find_one(TodoItem.listId == list_id, TodoItem.id == item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Todo item not found")
-    await item.update({"$set": body.dict(exclude_unset=True)})
-    item.updatedDate = datetime.utcnow()
-    return await item.save()
-
-
-@app.delete("/lists/{list_id}/items/{item_id}", response_class=Response, status_code=204)
-async def delete_list_item(
-    list_id: PydanticObjectId, item_id: PydanticObjectId
+@app.delete("/posts/{post_id}/comments/{comment_id}", response_class=Response, status_code=204)
+async def delete_comment(
+    post_id: PydanticObjectId,
+    comment_id: PydanticObjectId
 ) -> None:
     """
-    Deletes a Todo item by unique identifier
+    Deletes a comment by unique identifier
     """
-    todo_item = await TodoItem.find_one(TodoItem.id == item_id)
-    if not todo_item:
-        raise HTTPException(status_code=404, detail="Todo item not found")
-    await todo_item.delete()
+    comment = await Comment.find_one(
+        Comment.id == comment_id,
+        Comment.postId == post_id
+    )
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    await comment.delete()

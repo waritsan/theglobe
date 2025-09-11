@@ -1,8 +1,8 @@
 import { Reducer } from "react";
 import { ActionTypes, TodoActions } from "../actions/common";
-import { TodoList } from "../models"
+import { Category } from "../models"
 
-export const listsReducer: Reducer<TodoList[], TodoActions> = (state: TodoList[], action: TodoActions): TodoList[] => {
+export const listsReducer: Reducer<Category[], TodoActions> = (state: Category[], action: TodoActions): Category[] => {
     switch (action.type) {
         case ActionTypes.LOAD_TODO_LISTS:
             state = [...action.payload];
@@ -11,7 +11,7 @@ export const listsReducer: Reducer<TodoList[], TodoActions> = (state: TodoList[]
             state = [...state, action.payload];
             break;
         case ActionTypes.DELETE_TODO_LIST:
-            state = [...state.filter(list => list.id !== action.payload)]
+            state = [...state.filter(category => category.id !== action.payload)]
     }
 
     return state;

@@ -1,6 +1,6 @@
 import { Dispatch } from "react";
-import { TodoItem } from "../models";
-import { ItemService } from "../services/itemService";
+import { BlogPost } from "../models";
+import { BlogService } from "../services/itemService";
 import { ActionTypes } from "./common";
 import config from "../config"
 import { ActionMethod, createPayloadAction, PayloadAction } from "./actionCreators";
@@ -10,67 +10,77 @@ export interface QueryOptions {
 }
 
 export interface ItemActions {
-    list(listId: string, options?: QueryOptions): Promise<TodoItem[]>
-    select(item?: TodoItem): Promise<TodoItem>
-    load(listId: string, id: string): Promise<TodoItem>
-    save(listId: string, Item: TodoItem): Promise<TodoItem>
-    remove(listId: string, Item: TodoItem): Promise<void>
+    list(options?: QueryOptions): Promise<BlogPost[]>
+    select(post?: BlogPost): Promise<BlogPost>
+    load(id: string): Promise<BlogPost>
+    save(post: BlogPost): Promise<BlogPost>
+    remove(post: BlogPost): Promise<void>
+    togglePublish(post: BlogPost): Promise<BlogPost>
 }
 
-export const list = (listId: string, options?: QueryOptions): ActionMethod<TodoItem[]> => async (dispatch: Dispatch<ListItemsAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
-    const items = await itemService.getList(options);
+export const list = (): ActionMethod<BlogPost[]> => async (dispatch: Dispatch<ListItemsAction>) => {
+    const blogService = new BlogService(config.api.baseUrl, `/posts`);
+    const posts = await blogService.getPublishedPosts();
 
-    dispatch(listItemsAction(items));
+    dispatch(listItemsAction(posts));
 
-    return items;
+    return posts;
 }
 
-export const select = (item?: TodoItem): ActionMethod<TodoItem | undefined> => async (dispatch: Dispatch<SelectItemAction>) => {
-    dispatch(selectItemAction(item));
+export const select = (post?: BlogPost): ActionMethod<BlogPost | undefined> => async (dispatch: Dispatch<SelectItemAction>) => {
+    dispatch(selectItemAction(post));
 
-    return Promise.resolve(item);
+    return Promise.resolve(post);
 }
 
-export const load = (listId: string, id: string): ActionMethod<TodoItem> => async (dispatch: Dispatch<LoadItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
-    const item = await itemService.get(id);
+export const load = (id: string): ActionMethod<BlogPost> => async (dispatch: Dispatch<LoadItemAction>) => {
+    const blogService = new BlogService(config.api.baseUrl, `/posts`);
+    const post = await blogService.get(id);
 
-    dispatch(loadItemAction(item));
+    dispatch(loadItemAction(post));
 
-    return item;
+    return post;
 }
 
-export const save = (listId: string, item: TodoItem): ActionMethod<TodoItem> => async (dispatch: Dispatch<SaveItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
-    const newItem = await itemService.save(item);
+export const save = (post: BlogPost): ActionMethod<BlogPost> => async (dispatch: Dispatch<SaveItemAction>) => {
+    const blogService = new BlogService(config.api.baseUrl, `/posts`);
+    const newPost = await blogService.save(post);
 
-    dispatch(saveItemAction(newItem));
+    dispatch(saveItemAction(newPost));
 
-    return newItem;
+    return newPost;
 }
 
-export const remove = (listId: string, item: TodoItem): ActionMethod<void> => async (dispatch: Dispatch<DeleteItemAction>) => {
-    const itemService = new ItemService(config.api.baseUrl, `/lists/${listId}/items`);
-    if (item.id) {
-        await itemService.delete(item.id);
-        dispatch(deleteItemAction(item.id));
+export const remove = (post: BlogPost): ActionMethod<void> => async (dispatch: Dispatch<DeleteItemAction>) => {
+    const blogService = new BlogService(config.api.baseUrl, `/posts`);
+    if (post.id) {
+        await blogService.delete(post.id);
+        dispatch(deleteItemAction(post.id));
     }
 }
 
-export interface ListItemsAction extends PayloadAction<string, TodoItem[]> {
+export const togglePublish = (post: BlogPost): ActionMethod<BlogPost> => async (dispatch: Dispatch<TogglePublishAction>) => {
+    const blogService = new BlogService(config.api.baseUrl, `/posts`);
+    const updatedPost = await blogService.togglePublishStatus(post.id!, !post.published);
+
+    dispatch(togglePublishAction(updatedPost));
+
+    return updatedPost;
+}
+
+export interface ListItemsAction extends PayloadAction<string, BlogPost[]> {
     type: ActionTypes.LOAD_TODO_ITEMS
 }
 
-export interface SelectItemAction extends PayloadAction<string, TodoItem | undefined> {
+export interface SelectItemAction extends PayloadAction<string, BlogPost | undefined> {
     type: ActionTypes.SELECT_TODO_ITEM
 }
 
-export interface LoadItemAction extends PayloadAction<string, TodoItem> {
+export interface LoadItemAction extends PayloadAction<string, BlogPost> {
     type: ActionTypes.LOAD_TODO_ITEM
 }
 
-export interface SaveItemAction extends PayloadAction<string, TodoItem> {
+export interface SaveItemAction extends PayloadAction<string, BlogPost> {
     type: ActionTypes.SAVE_TODO_ITEM
 }
 
@@ -78,8 +88,13 @@ export interface DeleteItemAction extends PayloadAction<string, string> {
     type: ActionTypes.DELETE_TODO_ITEM
 }
 
+export interface TogglePublishAction extends PayloadAction<string, BlogPost> {
+    type: ActionTypes.TOGGLE_PUBLISH
+}
+
 const listItemsAction = createPayloadAction<ListItemsAction>(ActionTypes.LOAD_TODO_ITEMS);
 const selectItemAction = createPayloadAction<SelectItemAction>(ActionTypes.SELECT_TODO_ITEM);
 const loadItemAction = createPayloadAction<LoadItemAction>(ActionTypes.LOAD_TODO_ITEM);
 const saveItemAction = createPayloadAction<SaveItemAction>(ActionTypes.SAVE_TODO_ITEM);
 const deleteItemAction = createPayloadAction<DeleteItemAction>(ActionTypes.DELETE_TODO_ITEM);
+const togglePublishAction = createPayloadAction<TogglePublishAction>(ActionTypes.TOGGLE_PUBLISH);

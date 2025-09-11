@@ -1,5 +1,5 @@
 import { Dispatch } from "react";
-import { TodoList } from "../models";
+import { Category } from "../models";
 import { ListService } from "../services/listService";
 import { ActionTypes } from "./common";
 import config from "../config"
@@ -7,46 +7,46 @@ import { trackEvent } from "../services/telemetryService";
 import { ActionMethod, createPayloadAction, PayloadAction } from "./actionCreators";
 import { QueryOptions } from "./itemActions";
 
-const listService = new ListService(config.api.baseUrl, '/lists');
+const listService = new ListService(config.api.baseUrl, '/categories');
 
 export interface ListActions {
-    list(options?: QueryOptions): Promise<TodoList[]>
-    load(id: string): Promise<TodoList>
-    select(list: TodoList): Promise<TodoList>
-    save(list: TodoList): Promise<TodoList>
+    list(options?: QueryOptions): Promise<Category[]>
+    load(id: string): Promise<Category>
+    select(category: Category): Promise<Category>
+    save(category: Category): Promise<Category>
     remove(id: string): Promise<void>
 }
 
-export const list = (options?: QueryOptions): ActionMethod<TodoList[]> => async (dispatch: Dispatch<ListListsAction>) => {
-    const lists = await listService.getList(options);
+export const list = (options?: QueryOptions): ActionMethod<Category[]> => async (dispatch: Dispatch<ListListsAction>) => {
+    const categories = await listService.getList(options);
 
-    dispatch(listListsAction(lists));
+    dispatch(listListsAction(categories));
 
-    return lists;
+    return categories;
 }
 
-export const select = (list: TodoList): ActionMethod<TodoList> => (dispatch: Dispatch<SelectListAction>) => {
-    dispatch(selectListAction(list));
+export const select = (category: Category): ActionMethod<Category> => (dispatch: Dispatch<SelectListAction>) => {
+    dispatch(selectListAction(category));
 
-    return Promise.resolve(list);
+    return Promise.resolve(category);
 }
 
-export const load = (id: string): ActionMethod<TodoList> => async (dispatch: Dispatch<LoadListAction>) => {
-    const list = await listService.get(id);
+export const load = (id: string): ActionMethod<Category> => async (dispatch: Dispatch<LoadListAction>) => {
+    const category = await listService.get(id);
 
-    dispatch(loadListAction(list));
+    dispatch(loadListAction(category));
 
-    return list;
+    return category;
 }
 
-export const save = (list: TodoList): ActionMethod<TodoList> => async (dispatch: Dispatch<SaveListAction>) => {
-    const newList = await listService.save(list);
+export const save = (category: Category): ActionMethod<Category> => async (dispatch: Dispatch<SaveListAction>) => {
+    const newCategory = await listService.save(category);
 
-    dispatch(saveListAction(newList));
+    dispatch(saveListAction(newCategory));
 
     trackEvent(ActionTypes.SAVE_TODO_LIST.toString());
 
-    return newList;
+    return newCategory;
 }
 
 export const remove = (id: string): ActionMethod<void> => async (dispatch: Dispatch<DeleteListAction>) => {
@@ -55,19 +55,19 @@ export const remove = (id: string): ActionMethod<void> => async (dispatch: Dispa
     dispatch(deleteListAction(id));
 }
 
-export interface ListListsAction extends PayloadAction<string, TodoList[]> {
+export interface ListListsAction extends PayloadAction<string, Category[]> {
     type: ActionTypes.LOAD_TODO_LISTS
 }
 
-export interface SelectListAction extends PayloadAction<string, TodoList | undefined> {
+export interface SelectListAction extends PayloadAction<string, Category | undefined> {
     type: ActionTypes.SELECT_TODO_LIST
 }
 
-export interface LoadListAction extends PayloadAction<string, TodoList> {
+export interface LoadListAction extends PayloadAction<string, Category> {
     type: ActionTypes.LOAD_TODO_LIST
 }
 
-export interface SaveListAction extends PayloadAction<string, TodoList> {
+export interface SaveListAction extends PayloadAction<string, Category> {
     type: ActionTypes.SAVE_TODO_LIST
 }
 

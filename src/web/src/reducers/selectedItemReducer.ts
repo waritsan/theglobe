@@ -1,8 +1,8 @@
 import { Reducer } from "react";
 import { ActionTypes, TodoActions } from "../actions/common";
-import { TodoItem } from "../models"
+import { BlogPost } from "../models"
 
-export const selectedItemReducer: Reducer<TodoItem | undefined, TodoActions> = (state: TodoItem | undefined, action: TodoActions): TodoItem | undefined => {
+export const selectedItemReducer: Reducer<BlogPost | undefined, TodoActions> = (state: BlogPost | undefined, action: TodoActions): BlogPost | undefined => {
     switch (action.type) {
         case ActionTypes.SELECT_TODO_ITEM:
         case ActionTypes.LOAD_TODO_ITEM:

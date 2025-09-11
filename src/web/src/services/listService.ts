@@ -1,7 +1,7 @@
 import { RestService } from './restService';
-import { TodoList } from '../models';
+import { Category } from '../models';
 
-export class ListService extends RestService<TodoList> {
+export class ListService extends RestService<Category> {
     public constructor(baseUrl: string, baseRoute: string) {
         super(baseUrl, baseRoute);
     }

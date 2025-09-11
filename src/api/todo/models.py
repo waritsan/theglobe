@@ -27,7 +27,7 @@ class Settings(BaseSettings):
                 )
 
     AZURE_COSMOS_CONNECTION_STRING: str = ""
-    AZURE_COSMOS_DATABASE_NAME: str = "Todo"
+    AZURE_COSMOS_DATABASE_NAME: str = "Blog"
     AZURE_KEY_VAULT_ENDPOINT: Optional[str] = None
     APPLICATIONINSIGHTS_CONNECTION_STRING: Optional[str] = None
     APPLICATIONINSIGHTS_ROLENAME: Optional[str] = "API"
@@ -37,41 +37,61 @@ class Settings(BaseSettings):
         env_file_encoding = "utf-8"
 
 
-class TodoList(Document):
+class Category(Document):
     name: str
     description: Optional[str] = None
+    slug: str  # URL-friendly identifier
     createdDate: Optional[datetime] = None
     updatedDate: Optional[datetime] = None
 
 
-class CreateUpdateTodoList(BaseModel):
+class CreateUpdateCategory(BaseModel):
     name: str
     description: Optional[str] = None
+    slug: str
 
 
-class TodoState(Enum):
-    TODO = "todo"
-    INPROGRESS = "inprogress"
-    DONE = "done"
-
-
-class TodoItem(Document):
-    listId: PydanticObjectId
-    name: str
-    description: Optional[str] = None
-    state: Optional[TodoState] = None
-    dueDate: Optional[datetime] = None
-    completedDate: Optional[datetime] = None
+class BlogPost(Document):
+    title: str
+    content: str
+    excerpt: Optional[str] = None
+    author: str
+    categoryId: Optional[PydanticObjectId] = None
+    tags: Optional[list[str]] = []
+    slug: str  # URL-friendly identifier
+    published: bool = False
+    publishedDate: Optional[datetime] = None
     createdDate: Optional[datetime] = None
     updatedDate: Optional[datetime] = None
 
 
-class CreateUpdateTodoItem(BaseModel):
-    name: str
-    description: Optional[str] = None
-    state: Optional[TodoState] = None
-    dueDate: Optional[datetime] = None
-    completedDate: Optional[datetime] = None
+class CreateUpdateBlogPost(BaseModel):
+    title: str
+    content: str
+    excerpt: Optional[str] = None
+    author: str
+    categoryId: Optional[PydanticObjectId] = None
+    tags: Optional[list[str]] = []
+    slug: str
+    published: bool = False
+    publishedDate: Optional[datetime] = None
 
 
-__beanie_models__ = [TodoList, TodoItem]
+class Comment(Document):
+    postId: PydanticObjectId
+    author: str
+    email: Optional[str] = None
+    content: str
+    approved: bool = False
+    createdDate: Optional[datetime] = None
+    updatedDate: Optional[datetime] = None
+
+
+class CreateUpdateComment(BaseModel):
+    author: str
+    email: Optional[str] = None
+    content: str
+    approved: bool = False
+
+
+__beanie_models__ = [Category, BlogPost, Comment]

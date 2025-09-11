@@ -1,22 +1,22 @@
 import { IIconProps, INavLink, INavLinkGroup, Nav, Stack, TextField } from '@fluentui/react';
 import { FC, ReactElement, useState, FormEvent, MouseEvent } from 'react';
 import { useNavigate } from 'react-router';
-import { TodoList } from '../models/todoList';
+import { Category } from '../models/blogModels';
 import { stackItemPadding } from '../ux/styles';
 
-interface TodoListMenuProps {
-    selectedList?: TodoList
-    lists?: TodoList[]
-    onCreate: (list: TodoList) => void
+interface BlogCategoryMenuProps {
+    selectedCategory?: Category
+    categories?: Category[]
+    onCreate: (category: Category) => void
 }
 
 const iconProps: IIconProps = {
     iconName: 'AddToShoppingList'
 }
 
-const TodoListMenu: FC<TodoListMenuProps> = (props: TodoListMenuProps): ReactElement => {
+const BlogCategoryMenu: FC<BlogCategoryMenuProps> = (props: BlogCategoryMenuProps): ReactElement => {
     const navigate = useNavigate();
-    const [newListName, setNewListName] = useState('');
+    const [newCategoryName, setNewCategoryName] = useState('');
 
     const onNavLinkClick = (evt?: MouseEvent<HTMLElement>, item?: INavLink) => {
         evt?.preventDefault();
@@ -25,16 +25,16 @@ const TodoListMenu: FC<TodoListMenuProps> = (props: TodoListMenuProps): ReactEle
             return;
         }
 
-        navigate(`/lists/${item.key}`);
+        navigate(`/categories/${item.key}`);
     }
 
-    const createNavGroups = (lists: TodoList[]): INavLinkGroup[] => {
-        const links = lists.map(list => ({
-            key: list.id,
-            name: list.name,
-            url: `/lists/${list.id}`,
+    const createNavGroups = (categories: Category[]): INavLinkGroup[] => {
+        const links = categories.map(category => ({
+            key: category.id || '',
+            name: category.name,
+            url: `/categories/${category.id}`,
             links: [],
-            isExpanded: props.selectedList ? list.id === props.selectedList.id : false
+            isExpanded: props.selectedCategory ? category.id === props.selectedCategory.id : false
         }));
 
         return [{
@@ -42,20 +42,21 @@ const TodoListMenu: FC<TodoListMenuProps> = (props: TodoListMenuProps): ReactEle
         }]
     }
 
-    const onNewListNameChange = (_evt: FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
-        setNewListName(value || '');
+    const onNewCategoryNameChange = (_evt: FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
+        setNewCategoryName(value || '');
     }
 
     const onFormSubmit = async (evt: FormEvent<HTMLFormElement>) => {
         evt.preventDefault();
 
-        if (newListName) {
-            const list: TodoList = {
-                name: newListName
+        if (newCategoryName) {
+            const category: Category = {
+                name: newCategoryName,
+                slug: newCategoryName.toLowerCase().replace(/\s+/g, '-')
             };
 
-            props.onCreate(list);
-            setNewListName('');
+            props.onCreate(category);
+            setNewCategoryName('');
         }
     }
 
@@ -63,23 +64,23 @@ const TodoListMenu: FC<TodoListMenuProps> = (props: TodoListMenuProps): ReactEle
         <Stack>
             <Stack.Item>
                 <Nav
-                    selectedKey={props.selectedList?.id}
+                    selectedKey={props.selectedCategory?.id}
                     onLinkClick={onNavLinkClick}
-                    groups={createNavGroups(props.lists || [])} />
+                    groups={createNavGroups(props.categories || [])} />
             </Stack.Item>
             <Stack.Item tokens={stackItemPadding}>
                 <form onSubmit={onFormSubmit}>
                     <TextField
                         borderless
                         iconProps={iconProps}
-                        value={newListName}
-                        disabled={props.selectedList == null}
-                        placeholder="New List"
-                        onChange={onNewListNameChange} />
+                        value={newCategoryName}
+                        disabled={props.selectedCategory == null}
+                        placeholder="New Category"
+                        onChange={onNewCategoryNameChange} />
                 </form>
             </Stack.Item>
         </Stack>
     );
 };
 
-export default TodoListMenu;
+export default BlogCategoryMenu;

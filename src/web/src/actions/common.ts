@@ -11,7 +11,8 @@ export enum ActionTypes {
     LOAD_TODO_ITEM = "LOAD_TODO_ITEM",
     SELECT_TODO_ITEM = "SELECT_TODO_ITEM",
     SAVE_TODO_ITEM = "SAVE_TODO_ITEM",
-    DELETE_TODO_ITEM = "DELETE_TODO_ITEM"
+    DELETE_TODO_ITEM = "DELETE_TODO_ITEM",
+    TOGGLE_PUBLISH = "TOGGLE_PUBLISH"
 }
 
 export type TodoActions =
@@ -20,6 +21,7 @@ export type TodoActions =
     itemActions.LoadItemAction |
     itemActions.SaveItemAction |
     itemActions.DeleteItemAction |
+    itemActions.TogglePublishAction |
     listActions.ListListsAction |
     listActions.SelectListAction |
     listActions.LoadListAction |

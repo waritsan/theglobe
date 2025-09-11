@@ -1,20 +1,20 @@
 import { FC, ReactElement } from 'react';
-import TodoListMenu from '../components/todoListMenu';
-import { TodoList } from '../models/todoList';
+import BlogCategoryMenu from '../components/todoListMenu';
+import { Category } from '../models/blogModels';
 
 interface SidebarProps {
-    selectedList?: TodoList
-    lists?: TodoList[];
-    onListCreate: (list: TodoList) => void
+    selectedCategory?: Category
+    categories?: Category[];
+    onCategoryCreate: (category: Category) => void
 }
 
 const Sidebar: FC<SidebarProps> = (props: SidebarProps): ReactElement => {
     return (
         <div>
-            <TodoListMenu
-                selectedList={props.selectedList}
-                lists={props.lists}
-                onCreate={props.onListCreate} />
+            <BlogCategoryMenu
+                selectedCategory={props.selectedCategory}
+                categories={props.categories}
+                onCreate={props.onCategoryCreate} />
         </div>
     );
 };

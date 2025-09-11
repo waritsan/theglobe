@@ -38,8 +38,8 @@ const Header: FC = (): ReactElement => {
     return (
         <Stack horizontal>
             <Stack horizontal styles={logoStyles}>
-                <FontIcon aria-label="Check" iconName="SkypeCircleCheck" className={logoIconClass} />
-                <Text variant="xLarge">ToDo</Text>
+                <FontIcon aria-label="Blog" iconName="ReadingMode" className={logoIconClass} />
+                <Text variant="xLarge">Blog</Text>
             </Stack>
             <Stack.Item grow={1}>
                 <div></div>
