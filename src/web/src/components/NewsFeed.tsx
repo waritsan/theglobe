@@ -112,7 +112,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
 
   const categories = [t('blog.category.all'), ...Array.from(new Set(posts.flatMap(post => post.tags)))];
 
-  const filteredNews = selectedCategory === 'All'
+  const filteredNews = selectedCategory === t('blog.category.all')
     ? news
     : news.filter(item => item.category === selectedCategory);
 

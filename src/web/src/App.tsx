@@ -4,13 +4,15 @@ import NewsFeed from './components/NewsFeed'
 import AdminPage from './components/AdminPage'
 import BlogPostDetail from './components/BlogPostDetail'
 import LanguageSwitcher from './components/LanguageSwitcher'
+import SearchPage from './components/SearchPage'
 import { useTranslation } from 'react-i18next'
 
-type ViewType = 'blog' | 'admin' | 'post-detail'
+type ViewType = 'blog' | 'admin' | 'post-detail' | 'search'
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('blog')
   const [selectedPostId, setSelectedPostId] = useState<string>('')
+  const [searchQuery, setSearchQuery] = useState<string>('')
   const { t } = useTranslation()
 
   // Handle browser back/forward navigation
@@ -47,6 +49,13 @@ function App() {
     window.history.pushState({ view: 'admin' }, '', '/admin')
   }
 
+  const navigateToSearch = () => {
+    setCurrentView('search')
+    setSelectedPostId('')
+    // Update browser history
+    window.history.pushState({ view: 'search' }, '', '/search')
+  }
+
   // Handle initial load with URL parameters
   useEffect(() => {
     const path = window.location.pathname
@@ -58,6 +67,8 @@ function App() {
       }
     } else if (path === '/admin') {
       setCurrentView('admin')
+    } else if (path === '/search') {
+      setCurrentView('search')
     } else {
       setCurrentView('blog')
     }
@@ -100,7 +111,11 @@ function App() {
                   <path d="M12 1l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path>
                 </svg>
               </button>
-              <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <button 
+                onClick={navigateToSearch}
+                className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                title={t('nav.search')}
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11" r="8"></circle>
                   <path d="m21 21-4.35-4.35"></path>
@@ -125,6 +140,14 @@ function App() {
       <main className="py-8">
         {currentView === 'blog' && <NewsFeed onPostClick={navigateToPost} />}
         {currentView === 'admin' && <AdminPage />}
+        {currentView === 'search' && (
+          <SearchPage 
+            onPostClick={navigateToPost} 
+            onBack={navigateToBlog}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+          />
+        )}
         {currentView === 'post-detail' && (
           <BlogPostDetail postId={selectedPostId} onBack={navigateToBlog} />
         )}

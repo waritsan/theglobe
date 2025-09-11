@@ -78,12 +78,22 @@ const resources = {
       "date.relative.hours_plural": "{{count}} hours ago",
       "date.relative.days": "{{count}} day ago",
       "date.relative.days_plural": "{{count}} days ago",
+
+      // Search
+      "search.title": "Search Articles",
+      "search.placeholder": "Search articles...",
+      "search.results": "results found",
+      "search.result": "result found",
+      "search.noResults": "No results found",
+      "search.noResultsMessage": "Try adjusting your search terms or browse all posts.",
+      "search.startSearching": "Start searching",
+      "search.startSearchingMessage": "Enter keywords to search through blog posts.",
     }
   },
   th: {
     translation: {
       // Navigation
-      "nav.blog": "บล็อก",
+      "nav.blog": "ข่าวสาร",
       "nav.admin": "ผู้ดูแลระบบ",
       "nav.search": "ค้นหา",
       "nav.notifications": "การแจ้งเตือน",
@@ -96,26 +106,26 @@ const resources = {
       "blog.title": "ข่าวสาร",
       "blog.subtitle": "ค้นพบข่าวสารและสิทธิประโยชน์จากภาครัฐฯ",
       "blog.category.all": "ทั้งหมด",
-      "blog.readMore": "อ่านโพสต์เต็ม →",
-      "blog.noPosts": "ไม่พบโพสต์บล็อกในหมวดหมู่นี้",
-      "blog.loading": "กำลังโหลดโพสต์บล็อก...",
+      "blog.readMore": "อ่านข่าวเต็ม →",
+      "blog.noPosts": "ไม่พบข่าวข่าวสารในหมวดหมู่นี้",
+      "blog.loading": "กำลังโหลดข่าวข่าวสาร...",
 
       // Post Detail
-      "post.backToBlog": "กลับไปที่บล็อก",
-      "post.backToPosts": "กลับไปที่โพสต์ทั้งหมด",
-      "post.notFound": "ไม่พบโพสต์",
-      "post.notFoundMessage": "โพสต์บล็อกที่คุณกำลังมองหาไม่มีอยู่หรือถูกลบไปแล้ว",
-      "post.loading": "กำลังโหลดโพสต์...",
-      "post.error": "ไม่สามารถโหลดโพสต์บล็อกได้ กรุณาลองใหม่อีกครั้ง",
+      "post.backToBlog": "กลับไปที่ข่าวสาร",
+      "post.backToPosts": "กลับไปที่ข่าวทั้งหมด",
+      "post.notFound": "ไม่พบข่าว",
+      "post.notFoundMessage": "ข่าวข่าวสารที่คุณกำลังมองหาไม่มีอยู่หรือถูกลบไปแล้ว",
+      "post.loading": "กำลังโหลดข่าว...",
+      "post.error": "ไม่สามารถโหลดข่าวข่าวสารได้ กรุณาลองใหม่อีกครั้ง",
 
       // Admin
-      "admin.title": "ผู้ดูแลระบบบล็อก",
-      "admin.createPost": "สร้างโพสต์ใหม่",
-      "admin.editPost": "แก้ไขโพสต์",
-      "admin.deletePost": "ลบโพสต์",
+      "admin.title": "ผู้ดูแลระบบข่าวสาร",
+      "admin.createPost": "สร้างข่าวใหม่",
+      "admin.editPost": "แก้ไขข่าว",
+      "admin.deletePost": "ลบข่าว",
       "admin.save": "บันทึก",
       "admin.cancel": "ยกเลิก",
-      "admin.confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบโพสต์นี้?",
+      "admin.confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบข่าวนี้?",
       "admin.postTitle": "หัวข้อ",
       "admin.postContent": "เนื้อหา",
       "admin.postExcerpt": "สรุป",
@@ -154,6 +164,16 @@ const resources = {
       "date.relative.hours_plural": "{{count}} ชั่วโมงที่แล้ว",
       "date.relative.days": "{{count}} วันที่แล้ว",
       "date.relative.days_plural": "{{count}} วันที่แล้ว",
+
+      // Search
+      "search.title": "ค้นหาบทความ",
+      "search.placeholder": "ค้นหาบทความ...",
+      "search.results": "ผลลัพธ์ที่พบ",
+      "search.result": "ผลลัพธ์ที่พบ",
+      "search.noResults": "ไม่พบผลลัพธ์",
+      "search.noResultsMessage": "ลองปรับคำค้นหาหรือเรียกดูข่าวทั้งหมด",
+      "search.startSearching": "เริ่มค้นหา",
+      "search.startSearchingMessage": "ป้อนคำสำคัญเพื่อค้นหาในข่าวข่าวสาร",
     }
   }
 };
