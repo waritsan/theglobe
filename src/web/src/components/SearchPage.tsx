@@ -170,10 +170,10 @@ const SearchPage: React.FC<SearchPageProps> = ({ onPostClick, onBack, searchQuer
             key={post.id}
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-200 dark:border-gray-700"
           >
-            {post.imageUrl && (
+            {(post.imageUrl || getPlaceholderImage(post.tags, post.title)) && (
               <div className="h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer" onClick={() => onPostClick(post.id)}>
                 <img
-                  src={post.imageUrl}
+                  src={post.imageUrl || getPlaceholderImage(post.tags, post.title)}
                   alt={post.title}
                   className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
                 />

@@ -5,9 +5,10 @@ import AdminPage from './components/AdminPage'
 import BlogPostDetail from './components/BlogPostDetail'
 import LanguageSwitcher from './components/LanguageSwitcher'
 import SearchPage from './components/SearchPage'
+import ChatPage from './components/ChatPage'
 import { useTranslation } from 'react-i18next'
 
-type ViewType = 'blog' | 'admin' | 'post-detail' | 'search'
+type ViewType = 'blog' | 'admin' | 'post-detail' | 'search' | 'chat'
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('blog')
@@ -56,6 +57,13 @@ function App() {
     window.history.pushState({ view: 'search' }, '', '/search')
   }
 
+  const navigateToChat = () => {
+    setCurrentView('chat')
+    setSelectedPostId('')
+    // Update browser history
+    window.history.pushState({ view: 'chat' }, '', '/chat')
+  }
+
   // Handle initial load with URL parameters
   useEffect(() => {
     const path = window.location.pathname
@@ -69,6 +77,8 @@ function App() {
       setCurrentView('admin')
     } else if (path === '/search') {
       setCurrentView('search')
+    } else if (path === '/chat') {
+      setCurrentView('chat')
     } else {
       setCurrentView('blog')
     }
@@ -121,6 +131,17 @@ function App() {
                   <path d="m21 21-4.35-4.35"></path>
                 </svg>
               </button>
+              <button
+                onClick={navigateToChat}
+                className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+                  currentView === 'chat' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''
+                }`}
+                title={t('nav.chat')}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </button>
               <button className="relative p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
@@ -147,6 +168,9 @@ function App() {
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
           />
+        )}
+        {currentView === 'chat' && (
+          <ChatPage onBack={navigateToBlog} />
         )}
         {currentView === 'post-detail' && (
           <BlogPostDetail postId={selectedPostId} onBack={navigateToBlog} />
