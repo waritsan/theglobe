@@ -1,0 +1,183 @@
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// Translation resources
+const resources = {
+  en: {
+    translation: {
+      // Navigation
+      "nav.blog": "Blog",
+      "nav.admin": "Admin",
+      "nav.search": "Search",
+      "nav.notifications": "Notifications",
+
+      // Header
+      "header.title": "The Globe",
+      "header.subtitle": "Live Development!",
+
+      // Blog Feed
+      "blog.title": "Blog Posts",
+      "blog.subtitle": "Discover insights, tutorials, and stories from our community",
+      "blog.category.all": "All",
+      "blog.readMore": "Read full post →",
+      "blog.noPosts": "No blog posts found in this category.",
+      "blog.loading": "Loading blog posts...",
+
+      // Post Detail
+      "post.backToBlog": "Back to Blog",
+      "post.backToPosts": "Back to All Posts",
+      "post.notFound": "Post not found",
+      "post.notFoundMessage": "The blog post you're looking for doesn't exist or has been removed.",
+      "post.loading": "Loading post...",
+      "post.error": "Failed to load the blog post. Please try again.",
+
+      // Admin
+      "admin.title": "Blog Admin",
+      "admin.createPost": "Create New Post",
+      "admin.editPost": "Edit Post",
+      "admin.deletePost": "Delete Post",
+      "admin.save": "Save",
+      "admin.cancel": "Cancel",
+      "admin.confirmDelete": "Are you sure you want to delete this post?",
+      "admin.postTitle": "Title",
+      "admin.postContent": "Content",
+      "admin.postExcerpt": "Excerpt",
+      "admin.postAuthor": "Author",
+      "admin.postTags": "Tags",
+      "admin.postImageUrl": "Image URL",
+      "admin.postPublished": "Published",
+      "admin.postSlug": "Slug",
+
+      // Common
+      "common.loading": "Loading...",
+      "common.error": "An error occurred",
+      "common.retry": "Try again",
+      "common.yes": "Yes",
+      "common.no": "No",
+      "common.save": "Save",
+      "common.cancel": "Cancel",
+      "common.delete": "Delete",
+      "common.edit": "Edit",
+      "common.view": "View",
+
+      // Language
+      "lang.english": "English",
+      "lang.thai": "ไทย",
+      "lang.french": "Français",
+      "lang.german": "Deutsch",
+      "lang.chinese": "中文",
+      "lang.japanese": "日本語",
+
+      // Date/Time
+      "date.format": "{{date, dd/MM/yyyy}}",
+      "date.relative.now": "Just now",
+      "date.relative.minutes": "{{count}} minute ago",
+      "date.relative.minutes_plural": "{{count}} minutes ago",
+      "date.relative.hours": "{{count}} hour ago",
+      "date.relative.hours_plural": "{{count}} hours ago",
+      "date.relative.days": "{{count}} day ago",
+      "date.relative.days_plural": "{{count}} days ago",
+    }
+  },
+  th: {
+    translation: {
+      // Navigation
+      "nav.blog": "บล็อก",
+      "nav.admin": "ผู้ดูแลระบบ",
+      "nav.search": "ค้นหา",
+      "nav.notifications": "การแจ้งเตือน",
+
+      // Header
+      "header.title": "The Globe",
+      "header.subtitle": "การพัฒนาสด!",
+
+      // Blog Feed
+      "blog.title": "ข่าวสาร",
+      "blog.subtitle": "ค้นพบข่าวสารและสิทธิประโยชน์จากภาครัฐฯ",
+      "blog.category.all": "ทั้งหมด",
+      "blog.readMore": "อ่านโพสต์เต็ม →",
+      "blog.noPosts": "ไม่พบโพสต์บล็อกในหมวดหมู่นี้",
+      "blog.loading": "กำลังโหลดโพสต์บล็อก...",
+
+      // Post Detail
+      "post.backToBlog": "กลับไปที่บล็อก",
+      "post.backToPosts": "กลับไปที่โพสต์ทั้งหมด",
+      "post.notFound": "ไม่พบโพสต์",
+      "post.notFoundMessage": "โพสต์บล็อกที่คุณกำลังมองหาไม่มีอยู่หรือถูกลบไปแล้ว",
+      "post.loading": "กำลังโหลดโพสต์...",
+      "post.error": "ไม่สามารถโหลดโพสต์บล็อกได้ กรุณาลองใหม่อีกครั้ง",
+
+      // Admin
+      "admin.title": "ผู้ดูแลระบบบล็อก",
+      "admin.createPost": "สร้างโพสต์ใหม่",
+      "admin.editPost": "แก้ไขโพสต์",
+      "admin.deletePost": "ลบโพสต์",
+      "admin.save": "บันทึก",
+      "admin.cancel": "ยกเลิก",
+      "admin.confirmDelete": "คุณแน่ใจหรือไม่ว่าต้องการลบโพสต์นี้?",
+      "admin.postTitle": "หัวข้อ",
+      "admin.postContent": "เนื้อหา",
+      "admin.postExcerpt": "สรุป",
+      "admin.postAuthor": "ผู้เขียน",
+      "admin.postTags": "แท็ก",
+      "admin.postImageUrl": "URL รูปภาพ",
+      "admin.postPublished": "เผยแพร่",
+      "admin.postSlug": "Slug",
+
+      // Common
+      "common.loading": "กำลังโหลด...",
+      "common.error": "เกิดข้อผิดพลาด",
+      "common.retry": "ลองใหม่",
+      "common.yes": "ใช่",
+      "common.no": "ไม่",
+      "common.save": "บันทึก",
+      "common.cancel": "ยกเลิก",
+      "common.delete": "ลบ",
+      "common.edit": "แก้ไข",
+      "common.view": "ดู",
+
+      // Language
+      "lang.english": "English",
+      "lang.thai": "ไทย",
+      "lang.french": "Français",
+      "lang.german": "Deutsch",
+      "lang.chinese": "中文",
+      "lang.japanese": "日本語",
+
+      // Date/Time
+      "date.format": "{{date, dd/MM/yyyy}}",
+      "date.relative.now": "เมื่อสักครู่",
+      "date.relative.minutes": "{{count}} นาทีที่แล้ว",
+      "date.relative.minutes_plural": "{{count}} นาทีที่แล้ว",
+      "date.relative.hours": "{{count}} ชั่วโมงที่แล้ว",
+      "date.relative.hours_plural": "{{count}} ชั่วโมงที่แล้ว",
+      "date.relative.days": "{{count}} วันที่แล้ว",
+      "date.relative.days_plural": "{{count}} วันที่แล้ว",
+    }
+  }
+};
+
+i18n
+  .use(LanguageDetector)
+  .use(initReactI18next)
+  .init({
+    resources,
+    fallbackLng: 'th',
+    debug: import.meta.env.DEV,
+
+    interpolation: {
+      escapeValue: false, // React already escapes values
+    },
+
+    detection: {
+      order: ['localStorage', 'navigator', 'htmlTag'],
+      caches: ['localStorage'],
+    },
+
+    react: {
+      useSuspense: false,
+    },
+  });
+
+export default i18n;

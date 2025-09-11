@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BlogPost {
   id: string;
@@ -17,6 +18,7 @@ interface BlogPost {
 }
 
 const AdminPage: React.FC = () => {
+  const { t } = useTranslation()
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -94,7 +96,7 @@ const AdminPage: React.FC = () => {
       setEditingPost(null);
     } catch (error) {
       console.error('Error saving post:', error);
-      alert('Failed to save post. Please try again.');
+      alert(t('admin.confirmDelete'));
     }
   };
 
@@ -114,7 +116,7 @@ const AdminPage: React.FC = () => {
   };
 
   const handleDelete = async (postId: string) => {
-    if (!confirm('Are you sure you want to delete this post?')) {
+    if (!confirm(t('admin.confirmDelete'))) {
       return;
     }
 
@@ -130,7 +132,7 @@ const AdminPage: React.FC = () => {
       fetchPosts();
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert('Failed to delete post. Please try again.');
+      alert(t('common.error'));
     }
   };
 
@@ -186,10 +188,10 @@ const AdminPage: React.FC = () => {
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                Blog Admin
+                {t('admin.title')}
               </h1>
               <p className="text-gray-600 dark:text-gray-400">
-                Manage your blog posts and content
+                {t('blog.subtitle')}
               </p>
             </div>
             <button
@@ -202,7 +204,7 @@ const AdminPage: React.FC = () => {
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              {showCreateForm ? 'Cancel' : '+ New Post'}
+              {showCreateForm ? t('common.cancel') : `+ ${t('admin.createPost')}`}
             </button>
           </div>
         </div>
@@ -211,13 +213,13 @@ const AdminPage: React.FC = () => {
         {showCreateForm && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-              {editingPost ? 'Edit Post' : 'Create New Post'}
+              {editingPost ? t('admin.editPost') : t('admin.createPost')}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Title *
+                    {t('admin.postTitle')} *
                   </label>
                   <input
                     type="text"
@@ -229,7 +231,7 @@ const AdminPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Author *
+                    {t('admin.postAuthor')} *
                   </label>
                   <input
                     type="text"
@@ -243,7 +245,7 @@ const AdminPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Slug *
+                  {t('admin.postSlug')} *
                 </label>
                 <input
                   type="text"
@@ -256,27 +258,27 @@ const AdminPage: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Excerpt
+                  {t('admin.postExcerpt')}
                 </label>
                 <textarea
                   value={formData.excerpt}
                   onChange={(e) => setFormData({...formData, excerpt: e.target.value})}
                   rows={3}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Brief summary of the post..."
+                  placeholder={t('admin.postExcerpt')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Content *
+                  {t('admin.postContent')} *
                 </label>
                 <textarea
                   value={formData.content}
                   onChange={(e) => setFormData({...formData, content: e.target.value})}
                   rows={8}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                  placeholder="Write your blog post content here..."
+                  placeholder={t('admin.postContent')}
                   required
                 />
               </div>
@@ -284,7 +286,7 @@ const AdminPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Tags
+                    {t('admin.postTags')}
                   </label>
                   <input
                     type="text"
@@ -296,7 +298,7 @@ const AdminPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                    Image URL
+                    {t('admin.postImageUrl')}
                   </label>
                   <input
                     type="url"
@@ -317,7 +319,7 @@ const AdminPage: React.FC = () => {
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 />
                 <label htmlFor="published" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                  Publish immediately
+                  {t('admin.postPublished')}
                 </label>
               </div>
 
@@ -326,7 +328,7 @@ const AdminPage: React.FC = () => {
                   type="submit"
                   className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
-                  {editingPost ? 'Update Post' : 'Create Post'}
+                  {editingPost ? t('admin.save') : t('admin.save')}
                 </button>
                 <button
                   type="button"
@@ -337,7 +339,7 @@ const AdminPage: React.FC = () => {
                   }}
                   className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                 >
-                  Cancel
+                  {t('admin.cancel')}
                 </button>
               </div>
             </form>
@@ -348,7 +350,7 @@ const AdminPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              All Posts ({posts.length})
+              All {t('blog.title')} ({posts.length})
             </h2>
           </div>
 
@@ -366,7 +368,7 @@ const AdminPage: React.FC = () => {
                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                           : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
                       }`}>
-                        {post.published ? 'Published' : 'Draft'}
+                        {post.published ? t('admin.postPublished') : 'Draft'}
                       </span>
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -395,13 +397,13 @@ const AdminPage: React.FC = () => {
                       onClick={() => handleEdit(post)}
                       className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
                     >
-                      Edit
+                      {t('common.edit')}
                     </button>
                     <button
                       onClick={() => handleDelete(post.id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-medium transition-colors"
                     >
-                      Delete
+                      {t('common.delete')}
                     </button>
                   </div>
                 </div>
@@ -412,13 +414,13 @@ const AdminPage: React.FC = () => {
           {posts.length === 0 && (
             <div className="p-12 text-center">
               <p className="text-gray-500 dark:text-gray-400 mb-4">
-                No blog posts found.
+                {t('blog.noPosts')}
               </p>
               <button
                 onClick={() => setShowCreateForm(true)}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
               >
-                Create Your First Post
+                {t('admin.createPost')}
               </button>
             </div>
           )}

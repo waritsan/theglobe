@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BlogPost {
   id: string;
@@ -65,6 +66,7 @@ interface NewsFeedProps {
 }
 
 const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
+  const { t } = useTranslation();
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,7 +110,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
     fetchBlogPosts();
   }, []);
 
-  const categories = ['All', ...Array.from(new Set(posts.flatMap(post => post.tags)))];
+  const categories = [t('blog.category.all'), ...Array.from(new Set(posts.flatMap(post => post.tags)))];
 
   const filteredNews = selectedCategory === 'All'
     ? news
@@ -147,10 +149,10 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
     <div className="w-full max-w-4xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-          Blog Posts
+          {t('blog.title')}
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
-          Discover insights, tutorials, and stories from our community
+          {t('blog.subtitle')}
         </p>
       </div>
 
@@ -225,7 +227,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
                   className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
                   onClick={() => onPostClick?.(item.id)}
                 >
-                  Read full post →
+                  {t('blog.readMore')}
                 </button>
               </div>
             </div>
@@ -236,7 +238,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
       {filteredNews.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 dark:text-gray-400">
-            No blog posts found in this category.
+            {t('blog.noPosts')}
           </p>
         </div>
       )}

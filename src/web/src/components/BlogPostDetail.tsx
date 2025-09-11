@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BlogPost {
   id: string;
@@ -22,6 +23,7 @@ interface BlogPostDetailProps {
 }
 
 const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
+  const { t } = useTranslation();
   const [post, setPost] = useState<BlogPost | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +56,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
         setPost(postData);
       } catch (error) {
         console.error('Error fetching post:', error);
-        setError('Failed to load the blog post. Please try again.');
+        setError(t('post.error'));
       } finally {
         setLoading(false);
       }
@@ -102,16 +104,16 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
             </svg>
           </div>
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-            {error || 'Post not found'}
+            {error || t('post.notFound')}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            The blog post you're looking for doesn't exist or has been removed.
+            {t('post.notFoundMessage')}
           </p>
           <button
             onClick={onBack}
             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
-            ← Back to Blog
+            ← {t('post.backToBlog')}
           </button>
         </div>
       </div>
@@ -126,7 +128,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
           onClick={onBack}
           className="inline-flex items-center px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
         >
-          ← Back to Blog
+          ← {t('post.backToBlog')}
         </button>
       </div>
 
@@ -202,7 +204,7 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
           onClick={onBack}
           className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
         >
-          ← Back to All Posts
+          ← {t('post.backToPosts')}
         </button>
       </div>
     </div>

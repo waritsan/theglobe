@@ -3,12 +3,15 @@ import { useState, useEffect } from 'react'
 import NewsFeed from './components/NewsFeed'
 import AdminPage from './components/AdminPage'
 import BlogPostDetail from './components/BlogPostDetail'
+import LanguageSwitcher from './components/LanguageSwitcher'
+import { useTranslation } from 'react-i18next'
 
 type ViewType = 'blog' | 'admin' | 'post-detail'
 
 function App() {
   const [currentView, setCurrentView] = useState<ViewType>('blog')
   const [selectedPostId, setSelectedPostId] = useState<string>('')
+  const { t } = useTranslation()
 
   // Handle browser back/forward navigation
   useEffect(() => {
@@ -82,9 +85,10 @@ function App() {
             </div>
             <div className="flex items-center gap-x-3">
               <img className="size-8 shrink-0" src="/theglobe-icon.jpg" alt="The Globe Logo" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">The Globe Blog - Live Development! 🚀</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('header.title')}</h1>
             </div>
             <nav className="flex items-center gap-x-3">
+              <LanguageSwitcher />
               <button
                 onClick={navigateToAdmin}
                 className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
