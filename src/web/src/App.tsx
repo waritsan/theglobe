@@ -1,7 +1,11 @@
 import './App.css'
+import { useState } from 'react'
 import NewsFeed from './components/NewsFeed'
+import AdminPage from './components/AdminPage'
 
 function App() {
+  const [currentView, setCurrentView] = useState<'blog' | 'admin'>('blog')
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Header */}
@@ -9,7 +13,12 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
+              <button
+                onClick={() => setCurrentView('blog')}
+                className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+                  currentView === 'blog' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''
+                }`}
+              >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <line x1="3" y1="6" x2="21" y2="6"></line>
                   <line x1="3" y1="12" x2="21" y2="12"></line>
@@ -19,9 +28,20 @@ function App() {
             </div>
             <div className="flex items-center gap-x-3">
               <img className="size-8 shrink-0" src="/theglobe-icon.jpg" alt="The Globe Logo" />
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">The Globe Blog</h1>
+              <h1 className="text-xl font-bold text-gray-900 dark:text-white">The Globe Blog - Live Development! 🚀</h1>
             </div>
             <nav className="flex items-center gap-x-3">
+              <button
+                onClick={() => setCurrentView('admin')}
+                className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
+                  currentView === 'admin' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''
+                }`}
+                title="Admin Panel"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 1l3 6 6 3-6 3-3 6-3-6-6-3 6-3z"></path>
+                </svg>
+              </button>
               <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <circle cx="11" cy="11" r="8"></circle>
@@ -45,7 +65,7 @@ function App() {
 
       {/* Main Content */}
       <main className="py-8">
-        <NewsFeed />
+        {currentView === 'blog' ? <NewsFeed /> : <AdminPage />}
       </main>
     </div>
   )

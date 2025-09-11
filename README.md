@@ -1,9 +1,52 @@
 ---
 page_type: sample
 languages:
-- azdeveloper
-- python
-- bicep
+- azdevel### Quickstart
+To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-python) with this template(`Azure-Samples/todo-python-mongo-swa-func`).
+
+This quickstart will show you how to authenticate on Azure, initialize using a template, provision infrastructure and deploy code on Azure via the following commands:
+
+```bash
+# Log in to azd. Only required once per-install.
+azd auth login
+
+# First-time project setup. Initialize a project in the current directory, using this template. 
+azd init --template Azure-Samples/todo-python-mongo-swa-func
+
+# Provision and deploy to Azure
+azd up
+```
+
+### Development with Live Reloading
+
+For faster development with hot reloading, use the development Docker setup:
+
+```bash
+# Start development environment with live reloading
+./dev.sh
+
+# Or manually with docker-compose
+docker-compose -f docker-compose.dev.yml up --build
+```
+
+**What you get:**
+- 🔄 **Hot Reloading**: Changes to your code automatically refresh in the browser
+- 🚀 **Fast Development**: No need to rebuild Docker images for every change
+- 📁 **Volume Mounts**: Source code is mounted directly into containers
+- 🐍 **Python Auto-reload**: Backend API automatically restarts on code changes
+- ⚛️ **React Hot Module Replacement**: Frontend updates without losing state
+
+**Access your app:**
+- Frontend: http://localhost:5173
+- API: http://localhost:3100
+- MongoDB: localhost:27017
+
+**Stop development:**
+```bash
+# Press Ctrl+C in the terminal running dev.sh
+# Or manually stop with:
+docker-compose -f docker-compose.dev.yml down
+``` bicep
 - typescript
 - html
 products:

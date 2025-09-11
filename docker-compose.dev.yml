@@ -1,0 +1,54 @@
+services:
+  api:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile.dev
+    ports:
+      - "3100:3100"
+    environment:
+      - AZURE_COSMOS_CONNECTION_STRING=mongodb://mongodb:27017
+      - AZURE_COSMOS_DATABASE_NAME=Todo
+      - API_ALLOW_ORIGINS=http://localhost:3000,http://localhost:5173,http://localhost:5174
+      - API_ENVIRONMENT=develop
+    volumes:
+      - ./src/api:/code
+      - /code/__pycache__
+    depends_on:
+      - mongodb
+    networks:
+      - app-network
+    command: uvicorn todo.app:app --host 0.0.0.0 --port 3100 --proxy-headers --reload
+
+  web:
+    build:
+      context: ./src/web
+      dockerfile: Dockerfile.dev
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3100
+      - VITE_APPLICATIONINSIGHTS_CONNECTION_STRING=
+    volumes:
+      - ./src/web:/app
+      - /app/node_modules
+    depends_on:
+      - api
+    networks:
+      - app-network
+    command: npm run dev -- --host 0.0.0.0
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - app-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  app-network:
+    driver: bridge
