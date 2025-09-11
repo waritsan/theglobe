@@ -63,6 +63,7 @@ class BlogPost(Document):
     publishedDate: Optional[datetime] = None
     createdDate: Optional[datetime] = None
     updatedDate: Optional[datetime] = None
+    imageUrl: Optional[str] = None  # Featured image URL
 
 
 class CreateUpdateBlogPost(BaseModel):
@@ -75,6 +76,7 @@ class CreateUpdateBlogPost(BaseModel):
     slug: str
     published: bool = False
     publishedDate: Optional[datetime] = None
+    imageUrl: Optional[str] = None
 
 
 class Comment(Document):

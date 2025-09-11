@@ -13,6 +13,7 @@ interface BlogPost {
   publishedDate: string;
   createdDate: string;
   updatedDate: string | null;
+  imageUrl?: string | null;
 }
 
 interface NewsItem {
@@ -43,15 +44,42 @@ const NewsFeed: React.FC = () => {
         author: post.author,
         publishedAt: post.publishedDate,
         category: post.tags.length > 0 ? post.tags[0] : 'General', // Use first tag as category
+        imageUrl: post.imageUrl || getPlaceholderImage(post.tags, post.title), // Use provided image or placeholder
         slug: post.slug
       }));
   };
 
-  // Get all unique categories from posts
-  const getCategories = (blogPosts: BlogPost[]): string[] => {
-    const allTags = blogPosts.flatMap(post => post.tags);
-    const uniqueTags = Array.from(new Set(allTags));
-    return ['All', ...uniqueTags];
+  // Get placeholder image based on tags or title
+  const getPlaceholderImage = (tags: string[], title: string): string => {
+    // Default images based on common blog topics
+    const defaultImages = [
+      'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop', // Laptop/Tech
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop', // Writing
+      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop', // Learning
+      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&fit=crop', // Ideas
+      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop', // Mountains
+    ];
+
+    // Try to match tags to appropriate images
+    if (tags.some(tag => tag.toLowerCase().includes('tech') || tag.toLowerCase().includes('code'))) {
+      return 'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop';
+    }
+    if (tags.some(tag => tag.toLowerCase().includes('writing') || tag.toLowerCase().includes('blog'))) {
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop';
+    }
+    if (tags.some(tag => tag.toLowerCase().includes('welcome') || tag.toLowerCase().includes('introduction'))) {
+      return 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop';
+    }
+    if (tags.some(tag => tag.toLowerCase().includes('nature') || tag.toLowerCase().includes('photography'))) {
+      return 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop';
+    }
+
+    // Use title hash to consistently pick the same image for the same title
+    const hash = title.split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+    return defaultImages[Math.abs(hash) % defaultImages.length];
   };
 
   useEffect(() => {
@@ -78,7 +106,7 @@ const NewsFeed: React.FC = () => {
     fetchBlogPosts();
   }, []);
 
-  const categories = getCategories(posts);
+  const categories = ['All', ...Array.from(new Set(posts.flatMap(post => post.tags)))];
 
   const filteredNews = selectedCategory === 'All'
     ? news
@@ -171,11 +199,11 @@ const NewsFeed: React.FC = () => {
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
                 {item.title}
               </h2>
-              
+
               <p className="text-gray-600 dark:text-gray-300 mb-4 leading-relaxed">
                 {item.summary}
               </p>
-              
+
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded-full flex items-center justify-center mr-3">
@@ -187,7 +215,7 @@ const NewsFeed: React.FC = () => {
                     {item.author}
                   </span>
                 </div>
-                
+
                 <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors">
                   Read full post →
                 </button>

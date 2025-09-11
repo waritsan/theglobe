@@ -18,7 +18,7 @@ function App() {
               </button>
             </div>
             <div className="flex items-center gap-x-3">
-              <img className="size-8 shrink-0" src="/vite.svg" alt="The Globe Logo" />
+              <img className="size-8 shrink-0" src="/theglobe-icon.jpg" alt="The Globe Logo" />
               <h1 className="text-xl font-bold text-gray-900 dark:text-white">The Globe Blog</h1>
             </div>
             <nav className="flex items-center gap-x-3">
