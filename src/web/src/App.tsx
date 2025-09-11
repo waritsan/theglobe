@@ -1,10 +1,64 @@
 import './App.css'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import NewsFeed from './components/NewsFeed'
 import AdminPage from './components/AdminPage'
+import BlogPostDetail from './components/BlogPostDetail'
+
+type ViewType = 'blog' | 'admin' | 'post-detail'
 
 function App() {
-  const [currentView, setCurrentView] = useState<'blog' | 'admin'>('blog')
+  const [currentView, setCurrentView] = useState<ViewType>('blog')
+  const [selectedPostId, setSelectedPostId] = useState<string>('')
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      if (event.state?.view) {
+        setCurrentView(event.state.view)
+        setSelectedPostId(event.state.postId || '')
+      }
+    }
+
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [])
+
+  const navigateToPost = (postId: string) => {
+    setSelectedPostId(postId)
+    setCurrentView('post-detail')
+    // Update browser history
+    window.history.pushState({ view: 'post-detail', postId }, '', `/post/${postId}`)
+  }
+
+  const navigateToBlog = () => {
+    setCurrentView('blog')
+    setSelectedPostId('')
+    // Update browser history
+    window.history.pushState({ view: 'blog' }, '', '/')
+  }
+
+  const navigateToAdmin = () => {
+    setCurrentView('admin')
+    setSelectedPostId('')
+    // Update browser history
+    window.history.pushState({ view: 'admin' }, '', '/admin')
+  }
+
+  // Handle initial load with URL parameters
+  useEffect(() => {
+    const path = window.location.pathname
+    if (path.startsWith('/post/')) {
+      const postId = path.split('/post/')[1]
+      if (postId) {
+        setSelectedPostId(postId)
+        setCurrentView('post-detail')
+      }
+    } else if (path === '/admin') {
+      setCurrentView('admin')
+    } else {
+      setCurrentView('blog')
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -14,7 +68,7 @@ function App() {
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setCurrentView('blog')}
+                onClick={navigateToBlog}
                 className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
                   currentView === 'blog' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''
                 }`}
@@ -32,7 +86,7 @@ function App() {
             </div>
             <nav className="flex items-center gap-x-3">
               <button
-                onClick={() => setCurrentView('admin')}
+                onClick={navigateToAdmin}
                 className={`p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors ${
                   currentView === 'admin' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400' : ''
                 }`}
@@ -65,7 +119,11 @@ function App() {
 
       {/* Main Content */}
       <main className="py-8">
-        {currentView === 'blog' ? <NewsFeed /> : <AdminPage />}
+        {currentView === 'blog' && <NewsFeed onPostClick={navigateToPost} />}
+        {currentView === 'admin' && <AdminPage />}
+        {currentView === 'post-detail' && (
+          <BlogPostDetail postId={selectedPostId} onBack={navigateToBlog} />
+        )}
       </main>
     </div>
   )

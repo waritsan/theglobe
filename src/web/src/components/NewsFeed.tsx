@@ -27,7 +27,44 @@ interface NewsItem {
   slug: string;
 }
 
-const NewsFeed: React.FC = () => {
+// Get placeholder image based on tags or title
+const getPlaceholderImage = (tags: string[], title: string): string => {
+  // Default images based on common blog topics
+  const defaultImages = [
+    'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop', // Laptop/Tech
+    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop', // Writing
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop', // Learning
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&fit=crop', // Ideas
+    'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop', // Mountains
+  ];
+
+  // Try to match tags to appropriate images
+  if (tags.some(tag => tag.toLowerCase().includes('tech') || tag.toLowerCase().includes('code'))) {
+    return 'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop';
+  }
+  if (tags.some(tag => tag.toLowerCase().includes('writing') || tag.toLowerCase().includes('blog'))) {
+    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop';
+  }
+  if (tags.some(tag => tag.toLowerCase().includes('welcome') || tag.toLowerCase().includes('introduction'))) {
+    return 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop';
+  }
+  if (tags.some(tag => tag.toLowerCase().includes('nature') || tag.toLowerCase().includes('photography'))) {
+    return 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop';
+  }
+
+  // Use title hash to consistently pick the same image for the same title
+  const hash = title.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return defaultImages[Math.abs(hash) % defaultImages.length];
+};
+
+interface NewsFeedProps {
+  onPostClick?: (postId: string) => void;
+}
+
+const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,42 +84,7 @@ const NewsFeed: React.FC = () => {
         imageUrl: post.imageUrl || getPlaceholderImage(post.tags, post.title), // Use provided image or placeholder
         slug: post.slug
       }));
-  };
-
-  // Get placeholder image based on tags or title
-  const getPlaceholderImage = (tags: string[], title: string): string => {
-    // Default images based on common blog topics
-    const defaultImages = [
-      'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop', // Laptop/Tech
-      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop', // Writing
-      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop', // Learning
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?w=400&h=200&fit=crop', // Ideas
-      'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop', // Mountains
-    ];
-
-    // Try to match tags to appropriate images
-    if (tags.some(tag => tag.toLowerCase().includes('tech') || tag.toLowerCase().includes('code'))) {
-      return 'https://images.unsplash.com/photo-1486312338219-ce68e2c6f44d?w=400&h=200&fit=crop';
-    }
-    if (tags.some(tag => tag.toLowerCase().includes('writing') || tag.toLowerCase().includes('blog'))) {
-      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=200&fit=crop';
-    }
-    if (tags.some(tag => tag.toLowerCase().includes('welcome') || tag.toLowerCase().includes('introduction'))) {
-      return 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=200&fit=crop';
-    }
-    if (tags.some(tag => tag.toLowerCase().includes('nature') || tag.toLowerCase().includes('photography'))) {
-      return 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop';
-    }
-
-    // Use title hash to consistently pick the same image for the same title
-    const hash = title.split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-    return defaultImages[Math.abs(hash) % defaultImages.length];
-  };
-
-  useEffect(() => {
+  };  useEffect(() => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
@@ -179,7 +181,7 @@ const NewsFeed: React.FC = () => {
             className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 overflow-hidden border border-gray-200 dark:border-gray-700"
           >
             {item.imageUrl && (
-              <div className="h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden">
+              <div className="h-48 bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-pointer" onClick={() => onPostClick?.(item.id)}>
                 <img
                   src={item.imageUrl}
                   alt={item.title}
@@ -196,7 +198,10 @@ const NewsFeed: React.FC = () => {
                   {formatDate(item.publishedAt)}
                 </time>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors">
+              <h2
+                className="text-xl font-semibold text-gray-900 dark:text-white mb-3 hover:text-blue-600 dark:hover:text-blue-400 cursor-pointer transition-colors"
+                onClick={() => onPostClick?.(item.id)}
+              >
                 {item.title}
               </h2>
 
@@ -216,7 +221,10 @@ const NewsFeed: React.FC = () => {
                   </span>
                 </div>
 
-                <button className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors">
+                <button
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors"
+                  onClick={() => onPostClick?.(item.id)}
+                >
                   Read full post →
                 </button>
               </div>
