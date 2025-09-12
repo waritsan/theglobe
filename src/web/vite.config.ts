@@ -6,12 +6,16 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/api': ({
-
+      '/api': {
         target: 'http://api:3100',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      } as any)
+      }
     }
+  },
+  // Build configuration for production
+  build: {
+    outDir: 'dist',
+    sourcemap: false
   }
 })

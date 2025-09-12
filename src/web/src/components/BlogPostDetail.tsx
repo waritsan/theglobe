@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getApiUrl } from '../config';
 
 interface BlogPost {
   id: string;
@@ -35,11 +36,11 @@ const BlogPostDetail: React.FC<BlogPostDetailProps> = ({ postId, onBack }) => {
         setError(null);
 
         // First try to fetch by ID
-        const response = await fetch(`/api/posts/${postId}`);
+        const response = await fetch(getApiUrl(`/posts/${postId}`));
 
         if (!response.ok) {
           // If not found by ID, try to fetch all posts and find by slug
-          const allPostsResponse = await fetch('/api/posts');
+          const allPostsResponse = await fetch(getApiUrl('/posts'));
           if (allPostsResponse.ok) {
             const allPosts: BlogPost[] = await allPostsResponse.json();
             const foundPost = allPosts.find(p => p.slug === postId || p.id === postId);

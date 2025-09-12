@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { getApiUrl } from '../config';
 
 interface BlogPost {
   id: string;
@@ -34,7 +35,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ onPostClick, onBack, searchQuer
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('/api/posts');
+        const response = await fetch(getApiUrl('/posts'));
         if (!response.ok) {
           throw new Error('Failed to fetch posts');
         }
