@@ -90,7 +90,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
     const fetchBlogPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3100/posts');
+        const response = await fetch('/api/posts');
         if (!response.ok) {
           throw new Error('Failed to fetch blog posts');
         }

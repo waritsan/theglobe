@@ -34,7 +34,7 @@ const SearchPage: React.FC<SearchPageProps> = ({ onPostClick, onBack, searchQuer
     const fetchPosts = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:3100/posts');
+        const response = await fetch('/api/posts');
         if (!response.ok) {
           throw new Error('Failed to fetch posts');
         }

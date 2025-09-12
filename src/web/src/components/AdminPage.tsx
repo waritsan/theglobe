@@ -41,7 +41,7 @@ const AdminPage: React.FC = () => {
   const fetchPosts = async () => {
     try {
       setLoading(true);
-      const response = await fetch('http://localhost:3100/posts');
+      const response = await fetch('/api/posts');
       if (!response.ok) {
         throw new Error('Failed to fetch posts');
       }
@@ -67,7 +67,7 @@ const AdminPage: React.FC = () => {
       let response;
       if (editingPost) {
         // Update existing post
-        response = await fetch(`http://localhost:3100/posts/${editingPost.id}`, {
+        response = await fetch(`/api/posts/${editingPost.id}`, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
@@ -76,7 +76,7 @@ const AdminPage: React.FC = () => {
         });
       } else {
         // Create new post
-        response = await fetch('http://localhost:3100/posts', {
+        response = await fetch('/api/posts', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -96,7 +96,7 @@ const AdminPage: React.FC = () => {
       setEditingPost(null);
     } catch (error) {
       console.error('Error saving post:', error);
-      alert(t('admin.confirmDelete'));
+      alert(t('common.error') + ': ' + (error as Error).message);
     }
   };
 
@@ -121,7 +121,7 @@ const AdminPage: React.FC = () => {
     }
 
     try {
-      const response = await fetch(`http://localhost:3100/posts/${postId}`, {
+      const response = await fetch(`/api/posts/${postId}`, {
         method: 'DELETE',
       });
 
@@ -132,7 +132,7 @@ const AdminPage: React.FC = () => {
       fetchPosts();
     } catch (error) {
       console.error('Error deleting post:', error);
-      alert(t('common.error'));
+      alert(t('common.error') + ': ' + (error as Error).message);
     }
   };
 
