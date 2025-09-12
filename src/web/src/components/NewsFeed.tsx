@@ -71,7 +71,7 @@ const NewsFeed: React.FC<NewsFeedProps> = ({ onPostClick }) => {
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string>('All');
+  const [selectedCategory, setSelectedCategory] = useState<string>(t('blog.category.all'));
 
   // Transform blog posts to news feed format
   const transformBlogPosts = (blogPosts: BlogPost[]): NewsItem[] => {
