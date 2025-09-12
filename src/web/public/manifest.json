@@ -1,7 +1,12 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "The Globe",
+  "name": "The Globe Blog",
   "icons": [
+    {
+      "src": "theglobe-icon.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg"
+    },
     {
       "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
