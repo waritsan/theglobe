@@ -1,0 +1,11 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "",
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "API_ENVIRONMENT": "develop",
+    "API_ALLOW_ORIGINS": "http://localhost:5173,http://localhost:3000",
+    "AZURE_COSMOS_CONNECTION_STRING": "your-azure-cosmos-connection-string-here",
+    "AZURE_COSMOS_DATABASE_NAME": "Blog"
+  }
+}
