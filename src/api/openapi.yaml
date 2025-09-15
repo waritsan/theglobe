@@ -1,41 +1,19 @@
 openapi: 3.0.0
 info:
-  description: Simple Todo API
+  description: The Globe API
   version: 3.0.0
-  title: Simple Todo API
+  title: The Globe API
   contact:
-    email: azdevteam@microsoft.com
+    email: waritsan@gmail.com
 
 components:
   schemas:
-    TodoItem:
-      type: object
-      required:
-        - listId
-        - name
-        - description
-      description: A task that needs to be completed
-      properties:
-        id:
-          type: string
-        listId:
-          type: string
-        name:
-          type: string
-        description:
-          type: string
-        state:
-          $ref: "#/components/schemas/TodoState"
-        dueDate:
-          type: string
-          format: date-time
-        completedDate:
-          type: string
-          format: date-time
-    TodoList:
+    Category:
       type: object
       required:
         - name
+        - slug
+      description: A content category for organizing blog posts
       properties:
         id:
           type: string
@@ -43,40 +21,124 @@ components:
           type: string
         description:
           type: string
-      description: " A list of related Todo items"
-    TodoState:
-      type: string
-      enum:
-        - todo
-        - inprogress
-        - done
+        slug:
+          type: string
+          description: URL-friendly identifier
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+    BlogPost:
+      type: object
+      required:
+        - title
+        - content
+        - author
+        - slug
+      description: A blog post or article
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        content:
+          type: string
+        excerpt:
+          type: string
+        author:
+          type: string
+        categoryId:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        slug:
+          type: string
+          description: URL-friendly identifier
+        published:
+          type: boolean
+        publishedDate:
+          type: string
+          format: date-time
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
+        imageUrl:
+          type: string
+          description: Featured image URL
+    Comment:
+      type: object
+      required:
+        - postId
+        - author
+        - content
+      description: A comment on a blog post
+      properties:
+        id:
+          type: string
+        postId:
+          type: string
+        author:
+          type: string
+        email:
+          type: string
+        content:
+          type: string
+        approved:
+          type: boolean
+        createdDate:
+          type: string
+          format: date-time
+        updatedDate:
+          type: string
+          format: date-time
   parameters:
-    listId:
+    categoryId:
       in: path
       required: true
-      name: listId
-      description: The Todo list unique identifier
+      name: categoryId
+      description: The category unique identifier
       schema:
         type: string
-    itemId:
+    postId:
       in: path
       required: true
-      name: itemId
-      description: The Todo item unique identifier
+      name: postId
+      description: The blog post unique identifier
       schema:
         type: string
-    state:
+    commentId:
       in: path
       required: true
-      name: state
-      description: The Todo item state
+      name: commentId
+      description: The comment unique identifier
       schema:
-        $ref: "#/components/schemas/TodoState"
+        type: string
+    published:
+      in: query
+      required: false
+      name: published
+      description: Filter by published status
+      schema:
+        type: boolean
+    approved:
+      in: query
+      required: false
+      name: approved
+      description: Filter by comment approval status
+      schema:
+        type: boolean
     top:
       in: query
       required: false
       name: top
-      description: The max number of items to returns in a result
+      description: The max number of items to return in a result
       schema:
         type: number
         default: 20
@@ -90,223 +152,274 @@ components:
         default: 0
 
   requestBodies:
-    TodoList:
-      description: The Todo List
+    Category:
+      description: The Category
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/TodoList"
-    TodoItem:
-      description: The Todo Item
+            $ref: "#/components/schemas/Category"
+    BlogPost:
+      description: The Blog Post
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/TodoItem"
+            $ref: "#/components/schemas/BlogPost"
+    Comment:
+      description: The Comment
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Comment"
 
   responses:
-    TodoList:
-      description: A Todo list result
+    Category:
+      description: A Category result
       content:
         application/json:
           schema:
-            $ref: "#/components/schemas/TodoList"
-    TodoListArray:
-      description: An array of Todo lists
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: "#/components/schemas/TodoList"
-    TodoItem:
-      description: A Todo item result
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/TodoItem"
-    TodoItemArray:
-      description: An array of Todo items
+            $ref: "#/components/schemas/Category"
+    CategoryArray:
+      description: An array of Categories
       content:
         application/json:
           schema:
             type: array
             items:
-              $ref: "#/components/schemas/TodoItem"
+              $ref: "#/components/schemas/Category"
+    BlogPost:
+      description: A Blog post result
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/BlogPost"
+    BlogPostArray:
+      description: An array of Blog posts
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/BlogPost"
+    Comment:
+      description: A Comment result
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Comment"
+    CommentArray:
+      description: An array of Comments
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/Comment"
 
 paths:
-  /lists:
+  /categories:
     get:
-      operationId: GetLists
-      summary: Gets an array of Todo lists
+      operationId: GetCategories
+      summary: Gets an array of categories
       tags:
-        - Lists
+        - Categories
       parameters:
         - $ref: "#/components/parameters/top"
         - $ref: "#/components/parameters/skip"
       responses:
         200:
-          $ref: "#/components/responses/TodoListArray"
+          $ref: "#/components/responses/CategoryArray"
     post:
-      operationId: CreateList
-      summary: Creates a new Todo list
+      operationId: CreateCategory
+      summary: Creates a new category
       tags:
-        - Lists
+        - Categories
       requestBody:
-        $ref: "#/components/requestBodies/TodoList"
+        $ref: "#/components/requestBodies/Category"
       responses:
         201:
-          $ref: "#/components/responses/TodoList"
+          $ref: "#/components/responses/Category"
         400:
           description: Invalid request schema
-  /lists/{listId}:
+  /categories/{categoryId}:
     get:
-      operationId: GetListById
-      summary: Gets a Todo list by unique identifier
+      operationId: GetCategoryById
+      summary: Gets a category by unique identifier
       tags:
-        - Lists
+        - Categories
       parameters:
-        - $ref: "#/components/parameters/listId"
+        - $ref: "#/components/parameters/categoryId"
       responses:
         200:
-          $ref: "#/components/responses/TodoList"
+          $ref: "#/components/responses/Category"
         404:
-          description: Todo list not found
+          description: Category not found
     put:
-      operationId: UpdateListById
-      summary: Updates a Todo list by unique identifier
+      operationId: UpdateCategoryById
+      summary: Updates a category by unique identifier
       tags:
-        - Lists
+        - Categories
       requestBody:
-        $ref: "#/components/requestBodies/TodoList"
+        $ref: "#/components/requestBodies/Category"
       parameters:
-        - $ref: "#/components/parameters/listId"
+        - $ref: "#/components/parameters/categoryId"
       responses:
         200:
-          $ref: "#/components/responses/TodoList"
+          $ref: "#/components/responses/Category"
         404:
-          description: Todo list not found
+          description: Category not found
         400:
-          description: Todo list is invalid
+          description: Category is invalid
     delete:
-      operationId: DeleteListById
-      summary: Deletes a Todo list by unique identifier
+      operationId: DeleteCategoryById
+      summary: Deletes a category by unique identifier
       tags:
-        - Lists
+        - Categories
       parameters:
-        - $ref: "#/components/parameters/listId"
+        - $ref: "#/components/parameters/categoryId"
       responses:
         204:
-          description: Todo list deleted successfully
+          description: Category deleted successfully
         404:
-          description: Todo list not found
-  /lists/{listId}/items:
-    post:
-      operationId: CreateItem
-      summary: Creates a new Todo item within a list
+          description: Category not found
+  /posts:
+    get:
+      operationId: GetPosts
+      summary: Gets an array of blog posts
       tags:
-        - Items
-      requestBody:
-        $ref: "#/components/requestBodies/TodoItem"
+        - Posts
       parameters:
-        - $ref: "#/components/parameters/listId"
+        - $ref: "#/components/parameters/published"
+        - $ref: "#/components/parameters/top"
+        - $ref: "#/components/parameters/skip"
+      responses:
+        200:
+          $ref: "#/components/responses/BlogPostArray"
+    post:
+      operationId: CreatePost
+      summary: Creates a new blog post
+      tags:
+        - Posts
+      requestBody:
+        $ref: "#/components/requestBodies/BlogPost"
       responses:
         201:
-          $ref: "#/components/responses/TodoItem"
-        404:
-          description: Todo list not found
-    get:
-      operationId: GetItemsByListId
-      summary: Gets Todo items within the specified list
-      tags:
-        - Items
-      parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/top"
-        - $ref: "#/components/parameters/skip"
-      responses:
-        200:
-          $ref: "#/components/responses/TodoItemArray"
-        404:
-          description: Todo list not found
-  /lists/{listId}/items/{itemId}:
-    get:
-      operationId: GetItemById
-      summary: Gets a Todo item by unique identifier
-      tags:
-        - Items
-      parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/itemId"
-      responses:
-        200:
-          $ref: "#/components/responses/TodoItem"
-        404:
-          description: Todo list or item not found
-    put:
-      operationId: UpdateItemById
-      summary: Updates a Todo item by unique identifier
-      tags:
-        - Items
-      requestBody:
-        $ref: "#/components/requestBodies/TodoItem"
-      parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/itemId"
-      responses:
-        200:
-          $ref: "#/components/responses/TodoItem"
+          $ref: "#/components/responses/BlogPost"
         400:
-          description: Todo item is invalid
+          description: Invalid request schema
+  /posts/{postId}:
+    get:
+      operationId: GetPostById
+      summary: Gets a blog post by unique identifier
+      tags:
+        - Posts
+      parameters:
+        - $ref: "#/components/parameters/postId"
+      responses:
+        200:
+          $ref: "#/components/responses/BlogPost"
         404:
-          description: Todo list or item not found
+          description: Blog post not found
+    put:
+      operationId: UpdatePostById
+      summary: Updates a blog post by unique identifier
+      tags:
+        - Posts
+      requestBody:
+        $ref: "#/components/requestBodies/BlogPost"
+      parameters:
+        - $ref: "#/components/parameters/postId"
+      responses:
+        200:
+          $ref: "#/components/responses/BlogPost"
+        404:
+          description: Blog post not found
+        400:
+          description: Blog post is invalid
     delete:
-      operationId: DeleteItemById
-      summary: Deletes a Todo item by unique identifier
+      operationId: DeletePostById
+      summary: Deletes a blog post by unique identifier
       tags:
-        - Items
+        - Posts
       parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/itemId"
+        - $ref: "#/components/parameters/postId"
       responses:
         204:
-          description: Todo item deleted successfully
+          description: Blog post deleted successfully
         404:
-          description: Todo list or item not found
-  /lists/{listId}/items/state/{state}:
+          description: Blog post not found
+  /posts/{postId}/comments:
     get:
-      operationId: GetItemsByListIdAndState
-      summary: Gets a list of Todo items of a specific state
+      operationId: GetPostComments
+      summary: Gets comments for a specific blog post
       tags:
-        - Items
+        - Comments
       parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/state"
+        - $ref: "#/components/parameters/postId"
+        - $ref: "#/components/parameters/approved"
         - $ref: "#/components/parameters/top"
         - $ref: "#/components/parameters/skip"
       responses:
         200:
-          $ref: "#/components/responses/TodoItemArray"
+          $ref: "#/components/responses/CommentArray"
         404:
-          description: Todo list or item not found
-    put:
-      operationId: UpdateItemsStateByListId
-      summary: Changes the state of the specified list items
+          description: Blog post not found
+    post:
+      operationId: CreateComment
+      summary: Creates a new comment for a blog post
       tags:
-        - Items
+        - Comments
       requestBody:
-        description: unique identifiers of the Todo items to update
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                description: The Todo item unique identifier
-                type: string
+        $ref: "#/components/requestBodies/Comment"
       parameters:
-        - $ref: "#/components/parameters/listId"
-        - $ref: "#/components/parameters/state"
+        - $ref: "#/components/parameters/postId"
+      responses:
+        201:
+          $ref: "#/components/responses/Comment"
+        404:
+          description: Blog post not found
+        400:
+          description: Invalid request schema
+  /posts/{postId}/comments/{commentId}:
+    get:
+      operationId: GetCommentById
+      summary: Gets a comment by unique identifier
+      tags:
+        - Comments
+      parameters:
+        - $ref: "#/components/parameters/postId"
+        - $ref: "#/components/parameters/commentId"
+      responses:
+        200:
+          $ref: "#/components/responses/Comment"
+        404:
+          description: Blog post or comment not found
+    put:
+      operationId: UpdateCommentById
+      summary: Updates a comment by unique identifier
+      tags:
+        - Comments
+      requestBody:
+        $ref: "#/components/requestBodies/Comment"
+      parameters:
+        - $ref: "#/components/parameters/postId"
+        - $ref: "#/components/parameters/commentId"
+      responses:
+        200:
+          $ref: "#/components/responses/Comment"
+        404:
+          description: Blog post or comment not found
+        400:
+          description: Comment is invalid
+    delete:
+      operationId: DeleteCommentById
+      summary: Deletes a comment by unique identifier
+      tags:
+        - Comments
+      parameters:
+        - $ref: "#/components/parameters/postId"
+        - $ref: "#/components/parameters/commentId"
       responses:
         204:
-          description: Todo items updated
-        400:
-          description: Update request is invalid
+          description: Comment deleted successfully
+        404:
+          description: Blog post or comment not found
