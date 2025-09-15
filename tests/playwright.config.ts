@@ -10,7 +10,7 @@ import dotenv from "dotenv";
 const config: PlaywrightTestConfig = {
   testDir: ".",
   /* Maximum time one test can run for. Using 2 hours per test */
-  timeout: 2 * 60 * 60 * 1000,
+  timeout: 30000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -49,34 +49,22 @@ const config: PlaywrightTestConfig = {
 };
 
 function getBaseURL() {
-  // If we don't have URL and aren't in CI, then try to load from environment
-  if (!process.env.REACT_APP_WEB_BASE_URL && !process.env.CI) {
-    // Try to get env in .azure folder
-    let environment = process.env.AZURE_ENV_NAME;
-    if (!environment) {
-      // Couldn't find env name in env var, let's try to load from .azure folder
-      try {
-        let configfilePath = join(__dirname, "..", ".azure", "config.json");
-        if (fs.existsSync(configfilePath)) {
-          let configFile = JSON.parse(fs.readFileSync(configfilePath, "utf-8"));
-          environment = configFile["defaultEnvironment"];
-        }
-      } catch (err) {
-        console.log("Unable to load default environment: " + err);
-      }
-    }
-
-    if (environment) {
-      let envPath = join(__dirname, "..", ".azure", environment, ".env");
-      console.log("Loading env from: " + envPath);
-      dotenv.config({ path: envPath });
-      return process.env.REACT_APP_WEB_BASE_URL;
-    }
+  // For testing, prefer localhost or a test environment over production
+  if (process.env.CI) {
+    // In CI, use the configured environment or default to localhost:3000
+    return process.env.REACT_APP_WEB_BASE_URL || "http://localhost:3000";
   }
 
-  let baseURL = process.env.REACT_APP_WEB_BASE_URL || "http://localhost:3000";
-  console.log("baseUrl: " + baseURL);
-  return baseURL;
+  // For local development/testing, default to localhost
+  // Only use production URL if explicitly set via TEST_PRODUCTION=true
+  if (process.env.TEST_PRODUCTION === 'true') {
+    console.log("⚠️  WARNING: Running tests against PRODUCTION environment!");
+    return process.env.REACT_APP_WEB_BASE_URL || "https://zealous-tree-02461c100.1.azurestaticapps.net";
+  }
+
+  // Default to localhost for local testing
+  console.log("Running tests against localhost (development mode)");
+  return "http://localhost:5173";
 }
 
 export default config;

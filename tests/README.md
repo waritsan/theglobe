@@ -1,14 +1,36 @@
-# ToDo Application Tests
+# The Globe Blog Application Tests
 
-The included [Playwright](https://playwright.dev/) smoke test will hit the ToDo app web endpoint, create, and delete an item.
+The included [Playwright](https://playwright.dev/) smoke tests will verify that The Globe blog application loads correctly and can connect to the API.
 
 ## Run Tests
 
 The endpoint it hits will be discovered in this order:
 
-1. Value of `REACT_APP_WEB_BASE_URL` environment variable
-1. Value of `REACT_APP_WEB_BASE_URL` found in default .azure environment
-1. Defaults to `http://localhost:3000`
+1. **Local Development (Default):** `http://localhost:3000`
+2. **CI Environment:** Uses `REACT_APP_WEB_BASE_URL` environment variable
+3. **Production Testing:** Set `TEST_PRODUCTION=true` to test against production
+
+### Local Testing (Recommended)
+
+```bash
+# Run tests against localhost (default)
+npx playwright test
+```
+
+### Production Testing (Use with Caution)
+
+```bash
+# Run tests against production environment
+TEST_PRODUCTION=true npx playwright test
+```
+
+⚠️ **Warning:** Running tests against production can:
+- Affect real users
+- Create noise in production logs
+- Potentially modify production data
+- Impact application performance
+
+Only use `TEST_PRODUCTION=true` when specifically testing production deployments.
 
 To run the tests:
 

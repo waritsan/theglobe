@@ -17,8 +17,76 @@ permissions:
   contents: read
 
 jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+        working-directory: tests
+
+      - name: Install test dependencies
+        run: npm install
+        working-directory: tests
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Azure Functions Core Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install azure-functions-core-tools-4
+
+      - name: Install API dependencies
+        run: pip install -r requirements.txt
+        working-directory: src/api
+
+      - name: Start API (background)
+        run: |
+          func host start --port 3100 &
+          sleep 10
+        working-directory: src/api
+
+      - name: Install web dependencies
+        run: npm install
+        working-directory: src/web
+
+      - name: Build web application
+        run: npm run build
+        working-directory: src/web
+
+      - name: Start web server (background)
+        run: |
+          npm run preview -- --port 3000 --host &
+          sleep 5
+        working-directory: src/web
+
+      - name: Run Playwright tests
+        run: npx playwright test
+        working-directory: tests
+        env:
+          REACT_APP_WEB_BASE_URL: http://localhost:3000
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: tests/playwright-report/
+          retention-days: 30
+
   build:
     runs-on: ubuntu-latest
+    needs: test
     env:
       AZURE_CLIENT_ID: ${{ vars.AZURE_CLIENT_ID }}
       AZURE_TENANT_ID: ${{ vars.AZURE_TENANT_ID }}
