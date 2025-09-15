@@ -41,6 +41,34 @@ def originList():
 from .models import Settings, __beanie_models__
 
 settings = Settings()
+
+# Global variable to track initialization
+_beanie_initialized = False
+
+async def ensure_beanie_initialized():
+    """Ensure Beanie is initialized before any database operations"""
+    global _beanie_initialized
+    if not _beanie_initialized:
+        print("Initializing Beanie...")
+        import motor.motor_asyncio
+        client = motor.motor_asyncio.AsyncIOMotorClient(
+            settings.AZURE_COSMOS_CONNECTION_STRING
+        )
+        
+        # Test the connection
+        await client.admin.command('ping')
+        print("Successfully pinged MongoDB server")
+        
+        database = client[settings.AZURE_COSMOS_DATABASE_NAME]
+        print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
+        
+        await init_beanie(
+            database=database,
+            document_models=__beanie_models__,
+        )
+        print("Beanie initialization completed successfully")
+        _beanie_initialized = True
+
 app = FastAPI(
     description="The Globe API",
     version="3.0.0",
@@ -69,12 +97,63 @@ if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
 
 from . import routes  # NOQA
 
+@app.get("/db-status")
+async def db_status():
+    """Check database connection status"""
+    try:
+        print(f"Testing database connection...")
+        print(f"Connection string set: {bool(settings.AZURE_COSMOS_CONNECTION_STRING)}")
+        print(f"Database name: {settings.AZURE_COSMOS_DATABASE_NAME}")
+        
+        # Create a simple motor client to test connection
+        import motor.motor_asyncio
+        client = motor.motor_asyncio.AsyncIOMotorClient(settings.AZURE_COSMOS_CONNECTION_STRING)
+        
+        # Test connection with ping
+        result = await client.admin.command('ping')
+        print(f"Ping result: {result}")
+        
+        # Try to list databases
+        db_list = await client.list_database_names()
+        print(f"Available databases: {db_list}")
+        
+        # Check if our database exists
+        db = client[settings.AZURE_COSMOS_DATABASE_NAME]
+        collections = await db.list_collection_names()
+        print(f"Collections in {settings.AZURE_COSMOS_DATABASE_NAME}: {collections}")
+        
+        return {
+            "status": "connected", 
+            "ping": result,
+            "databases": db_list,
+            "collections": collections
+        }
+    except Exception as e:
+        print(f"Database connection error: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return {"status": "error", "error": str(e), "type": type(e).__name__}
+
 @app.on_event("startup")
 async def startup_event():
+    print(f"Starting database initialization...")
+    print(f"Connection string set: {bool(settings.AZURE_COSMOS_CONNECTION_STRING)}")
+    print(f"Database name: {settings.AZURE_COSMOS_DATABASE_NAME}")
+    
+    import motor.motor_asyncio
     client = motor.motor_asyncio.AsyncIOMotorClient(
         settings.AZURE_COSMOS_CONNECTION_STRING
     )
+    
+    # Test the connection
+    await client.admin.command('ping')
+    print("Successfully pinged MongoDB server")
+    
+    database = client[settings.AZURE_COSMOS_DATABASE_NAME]
+    print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
+    
     await init_beanie(
-        database=client[settings.AZURE_COSMOS_DATABASE_NAME],
+        database=database,
         document_models=__beanie_models__,
     )
+    print("Beanie initialization completed successfully")

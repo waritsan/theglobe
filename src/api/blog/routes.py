@@ -12,6 +12,32 @@ from .models import (BlogPost, Category, Comment, CreateUpdateBlogPost,
                      CreateUpdateCategory, CreateUpdateComment)
 
 
+# Health check endpoint (no database dependency)
+@app.get("/health")
+async def health_check():
+    """
+    Simple health check endpoint
+    """
+    return {"status": "healthy", "message": "API is running"}
+
+
+@app.get("/test-beanie")
+async def test_beanie():
+    """Test Beanie initialization"""
+    try:
+        from .app import ensure_beanie_initialized
+        await ensure_beanie_initialized()
+        
+        from .models import BlogPost
+        # Try to count documents
+        count = await BlogPost.count()
+        return {"status": "success", "blog_posts_count": count}
+    except Exception as e:
+        import traceback
+        error_detail = traceback.format_exc()
+        return {"status": "error", "error": str(e), "traceback": error_detail}
+
+
 # Category routes
 @app.get("/categories", response_model=List[Category], response_model_by_alias=False)
 async def get_categories(
@@ -92,6 +118,9 @@ async def get_posts(
     - **top**: Number of posts to return
     - **skip**: Number of posts to skip
     """
+    from .app import ensure_beanie_initialized
+    await ensure_beanie_initialized()
+    
     query = BlogPost.all()
 
     if published is not None:
