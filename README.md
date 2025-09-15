@@ -1,52 +1,8 @@
 ---
 page_type: sample
 languages:
-- azdevel### Quickstart
-To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-python) with this template(`Azure-Samples/todo-python-mongo-swa-func`).
-
-This quickstart will show you how to authenticate on Azure, initialize using a template, provision infrastructure and deploy code on Azure via the following commands:
-
-```bash
-# Log in to azd. Only required once per-install.
-azd auth login
-
-# First-time project setup. Initialize a project in the current directory, using this template. 
-azd init --template Azure-Samples/todo-python-mongo-swa-func
-
-# Provision and deploy to Azure
-azd up
-```
-
-### Development with Live Reloading
-
-For faster development with hot reloading, use the development Docker setup:
-
-```bash
-# Start development environment with live reloading
-./dev.sh
-
-# Or manually with docker-compose
-docker-compose -f docker-compose.dev.yml up --build
-```
-
-**What you get:**
-- 🔄 **Hot Reloading**: Changes to your code automatically refresh in the browser
-- 🚀 **Fast Development**: No need to rebuild Docker images for every change
-- 📁 **Volume Mounts**: Source code is mounted directly into containers
-- 🐍 **Python Auto-reload**: Backend API automatically restarts on code changes
-- ⚛️ **React Hot Module Replacement**: Frontend updates without losing state
-
-**Access your app:**
-- Frontend: http://localhost:5173
-- API: http://localhost:3100
-- MongoDB: localhost:27017
-
-**Stop development:**
-```bash
-# Press Ctrl+C in the terminal running dev.sh
-# Or manually stop with:
-docker-compose -f docker-compose.dev.yml down
-``` bicep
+- azdevel
+- python
 - typescript
 - html
 products:
@@ -55,101 +11,193 @@ products:
 - azure-functions
 - azure-monitor
 - azure-pipelines
-urlFragment: todo-python-mongo-swa-func
-name: Static React Web App + Functions with Python API and MongoDB on Azure
-description: A complete ToDo app with Python FastAPI and Azure Cosmos API for MongoDB for storage. Uses Azure Developer CLI (azd) to build, deploy, and monitor
+urlFragment: theglobe-blog-platform
+name: The Globe - Blog Platform with Python API and React Frontend
+description: A modern blog and news platform with Python FastAPI backend, React frontend, and Azure cloud deployment
 ---
+
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
-# Static React Web App + Functions with Python API and MongoDB on Azure
+# The Globe - Blog Platform with Python API and React Frontend
 
-[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://codespaces.new/azure-samples/todo-python-mongo-swa-func)
-[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/todo-python-mongo-swa-func)
+[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://codespaces.new/waritsan/theglobe)
+[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/waritsan/theglobe)
 
-A blueprint for getting a React web app with Python (FastAPI) API and a MongoDB database running on Azure. The frontend, currently a ToDo application, is designed as a placeholder that can easily be removed and replaced with your own frontend code. This architecture is for hosting static web apps with serverless logic and functionality.
+**The Globe** is a modern, full-stack blog and news platform built with cutting-edge technologies. It features a React frontend with TypeScript, a Python FastAPI backend running on Azure Functions, and Azure Cosmos DB for data storage. Perfect for news websites, personal blogs, or content management systems.
 
-Let's jump in and get this up and running in Azure. When you are finished, you will have a fully functional web app deployed to the cloud. In later steps, you'll see how to setup a pipeline and monitor the application.
+## Features
 
-!["Screenshot of deployed ToDo app"](assets/web.png)
+- 📰 **Blog Management**: Create, edit, and publish blog posts with rich content
+- 📝 **Comment System**: Interactive comments on blog posts
+- 🏷️ **Categories & Tags**: Organize content with categories and tags
+- 🔍 **Search Functionality**: Full-text search across blog content
+- 📱 **Responsive Design**: Mobile-first React frontend with Tailwind CSS
+- ☁️ **Cloud-Native**: Deployed on Azure with serverless architecture
+- 🧪 **Automated Testing**: Playwright E2E tests with CI/CD pipeline
+- 📊 **Monitoring**: Azure Application Insights for performance tracking
 
-<sup>Screenshot of the deployed ToDo app</sup>
+## Tech Stack
 
-### Prerequisites
-> This template will create infrastructure and deploy code to Azure. If you don't have an Azure Subscription, you can sign up for a [free account here](https://azure.microsoft.com/free/). Make sure you have contributor role to the Azure subscription.
+- **Frontend**: React 18, TypeScript, Vite, Tailwind CSS
+- **Backend**: Python 3.13, FastAPI, Azure Functions
+- **Database**: Azure Cosmos DB
+- **Testing**: Playwright, pytest
+- **Deployment**: Azure Developer CLI (azd), GitHub Actions
+- **Monitoring**: Azure Application Insights
 
-The following prerequisites are required to use this application. Please ensure that you have them all installed locally, or open the project in Github Codespaces or [VS Code](https://code.visualstudio.com/) with the [Remote - Containers extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers) where they will be installed automatically.
+## Prerequisites
 
 - [Azure Developer CLI](https://aka.ms/azd-install)
 - [Azure Functions Core Tools (4+)](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
-- [Python (3.10+)](https://www.python.org/downloads/) - for the API backend
+- [Python (3.10+)](https://www.python.org/downloads/)
+- [Node.js (18+)](https://nodejs.org/)
+- [Git](https://git-scm.com/)
 
-### Quickstart
-To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-python) with this template(`Azure-Samples/todo-python-mongo-swa-func`).
+## Quickstart
 
-This quickstart will show you how to authenticate on Azure, initialize using a template, provision infrastructure and deploy code on Azure via the following commands:
+### Local Development
+
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/waritsan/theglobe.git
+   cd theglobe
+   ```
+
+2. **Install dependencies**
+   ```bash
+   # Install Python dependencies
+   cd src/api
+   pip install -r requirements.txt
+
+   # Install frontend dependencies
+   cd ../web
+   npm install
+   ```
+
+3. **Start development servers**
+   ```bash
+   # Start API and Web servers
+   npm run start-dev  # from project root
+   ```
+
+   Or use VS Code tasks:
+   ```bash
+   # Terminal Menu → Run Task → "Start API and Web"
+   ```
+
+4. **Access your application**
+   - Frontend: http://localhost:5173
+   - API: http://localhost:3100
+   - API Documentation: http://localhost:3100/docs
+
+### Azure Deployment
 
 ```bash
-# Log in to azd. Only required once per-install.
+# Log in to azd
 azd auth login
 
-# First-time project setup. Initialize a project in the current directory, using this template. 
-azd init --template Azure-Samples/todo-python-mongo-swa-func
+# Initialize project
+azd init
 
 # Provision and deploy to Azure
 azd up
 ```
 
-### Application Architecture
+## Application Architecture
 
-This application utilizes the following Azure resources:
+The Globe uses a modern serverless architecture:
 
-- [**Azure Static Web Apps**](https://docs.microsoft.com/azure/static-web-apps/) to host the Web frontend
-- [**Azure Function Apps**](https://docs.microsoft.com/azure/azure-functions/) to host the API backend
-- [**Azure Cosmos DB API for MongoDB**](https://docs.microsoft.com/azure/cosmos-db/mongodb/mongodb-introduction) for storage
-- [**Azure Monitor**](https://docs.microsoft.com/azure/azure-monitor/) for monitoring and logging
-- [**Azure Key Vault**](https://docs.microsoft.com/azure/key-vault/) for securing secrets
+- **Azure Static Web Apps**: Hosts the React frontend
+- **Azure Functions**: Runs the Python FastAPI backend
+- **Azure Cosmos DB**: NoSQL database for blog content and user data
+- **Azure Monitor**: Application performance monitoring
+- **Azure Key Vault**: Secure storage of connection strings
 
-Here's a high level architecture diagram that illustrates these components. Notice that these are all contained within a single [resource group](https://docs.microsoft.com/azure/azure-resource-manager/management/manage-resource-groups-portal), that will be created for you when you create the resources.
+## Development Workflow
 
-!["Application architecture diagram"](assets/resources.png)
+### Running Tests
 
-### Cost of provisioning and deploying this template
-This template provisions resources to an Azure subscription that you will select upon provisioning them. Refer to the [Pricing calculator for Microsoft Azure](https://azure.microsoft.com/pricing/calculator/) to estimate the cost you might incur when this template is running on Azure and, if needed, update the included Azure resource definitions found in `infra/main.bicep` to suit your needs.
+```bash
+# Run Playwright E2E tests
+cd tests
+npm install
+npx playwright test
 
-### Application Code
+# Run with UI
+npx playwright test --ui
 
-This template is structured to follow the [Azure Developer CLI](https://aka.ms/azure-dev/overview). You can learn more about `azd` architecture in [the official documentation](https://learn.microsoft.com/azure/developer/azure-developer-cli/make-azd-compatible?pivots=azd-create#understand-the-azd-architecture).
+# Generate test report
+npx playwright show-report
+```
 
-### Next Steps
+### API Development
 
-At this point, you have a complete application deployed on Azure. But there is much more that the Azure Developer CLI can do. These next steps will introduce you to additional commands that will make creating applications on Azure much easier. Using the Azure Developer CLI, you can setup your pipelines, monitor your application, test and debug locally.
+The API is built with FastAPI and includes:
+- RESTful endpoints for blog management
+- Automatic OpenAPI/Swagger documentation
+- CORS middleware for frontend integration
+- Azure Application Insights integration
 
-> Note: Needs to manually install [setup-azd extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.azd) for Azure DevOps (azdo).
+### Frontend Development
 
-- [`azd pipeline config`](https://learn.microsoft.com/azure/developer/azure-developer-cli/configure-devops-pipeline?tabs=GitHub) - to configure a CI/CD pipeline (using GitHub Actions or Azure DevOps) to deploy your application whenever code is pushed to the main branch. 
+The React frontend features:
+- Modern hooks-based architecture
+- Responsive design with Tailwind CSS
+- Internationalization support
+- Hot module replacement for fast development
 
-- [`azd monitor`](https://learn.microsoft.com/azure/developer/azure-developer-cli/monitor-your-app) - to monitor the application and quickly navigate to the various Application Insights dashboards (e.g. overview, live metrics, logs)
+## Project Structure
 
-- [Run and Debug Locally](https://learn.microsoft.com/azure/developer/azure-developer-cli/debug?pivots=ide-vs-code) - using Visual Studio Code and the Azure Developer CLI extension
+```
+theglobe/
+├── src/
+│   ├── api/                 # Python FastAPI backend
+│   │   ├── todo/           # Main API application
+│   │   ├── catchAllFunction/  # Azure Functions entry point
+│   │   └── openapi.yaml    # API specification
+│   └── web/                # React frontend
+│       ├── src/
+│       ├── public/
+│       └── package.json
+├── infra/                  # Azure infrastructure (Bicep)
+├── tests/                  # Playwright E2E tests
+├── .github/workflows/      # CI/CD pipelines
+└── README.md
+```
 
-- [`azd down`](https://learn.microsoft.com/azure/developer/azure-developer-cli/reference#azd-down) - to delete all the Azure resources created with this template 
+## Contributing
 
-- [Enable optional features, like APIM](./OPTIONAL_FEATURES.md) - for enhanced backend API protection and observability
-
-### Additional `azd` commands
-
-The Azure Developer CLI includes many other commands to help with your Azure development experience. You can view these commands at the terminal by running `azd help`. You can also view the full list of commands on our [Azure Developer CLI command](https://aka.ms/azure-dev/ref) page.
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and add tests
+4. Run tests: `npm test`
+5. Commit your changes: `git commit -m 'Add amazing feature'`
+6. Push to the branch: `git push origin feature/amazing-feature`
+7. Open a Pull Request
 
 ## Security
 
-### Roles
+This project implements several security best practices:
+- Managed identity for Azure resource access
+- Azure Key Vault for secrets management
+- CORS configuration for frontend-backend communication
+- Input validation and sanitization
 
-This template creates a [managed identity](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/overview) for your app inside your Azure Active Directory tenant, and it is used to authenticate your app with Azure and other services that support Azure AD authentication like Key Vault via access policies. You will see principalId referenced in the infrastructure as code files, that refers to the id of the currently logged in Azure Developer CLI user, which will be granted access policies and permissions to run the application locally. To view your managed identity in the Azure Portal, follow these [steps](https://docs.microsoft.com/azure/active-directory/managed-identities-azure-resources/how-to-view-managed-identity-service-principal-portal).
+## Monitoring
 
-### Key Vault
+The application includes comprehensive monitoring:
+- Azure Application Insights for performance metrics
+- Structured logging with OpenTelemetry
+- Error tracking and alerting
+- Real-time dashboard monitoring
 
-This template uses [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/overview) to securely store your Cosmos DB connection string for the provisioned Cosmos DB account. Key Vault is a cloud service for securely storing and accessing secrets (API keys, passwords, certificates, cryptographic keys) and makes it simple to give other Azure services access to them. As you continue developing your solution, you may add as many secrets to your Key Vault as you require.
+## License
 
-## Reporting Issues and Feedback
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-If you have any feature requests, issues, or areas for improvement, please [file an issue](https://aka.ms/azure-dev/issues). To keep up-to-date, ask questions, or share suggestions, join our [GitHub Discussions](https://aka.ms/azure-dev/discussions). You may also contact us via AzDevTeam@microsoft.com.
+## Support
+
+- 📖 [Documentation](./docs/)
+- 🐛 [Issues](https://github.com/waritsan/theglobe/issues)
+- 💬 [Discussions](https://github.com/waritsan/theglobe/discussions)
+- 📧 Contact: waritsan@gmail.com
