@@ -152,7 +152,7 @@ The React frontend features:
 theglobe/
 ├── src/
 │   ├── api/                 # Python FastAPI backend
-│   │   ├── todo/           # Main API application
+│   │   ├── blog/           # Main API application
 │   │   ├── catchAllFunction/  # Azure Functions entry point
 │   │   └── openapi.yaml    # API specification
 │   └── web/                # React frontend

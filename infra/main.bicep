@@ -227,10 +227,10 @@ module apimApi 'br/public:avm/ptn/azd/apim-api:0.1.0' = if (useAPIM) {
   scope: rg
   params: {
     apiBackendUrl: api.outputs.SERVICE_API_URI
-    apiDescription: 'This is a simple Todo API'
-    apiDisplayName: 'Simple Todo API'
-    apiName: 'todo-api'
-    apiPath: 'todo'
+    apiDescription: 'This is a blog API for The Globe platform'
+    apiDisplayName: 'The Globe Blog API'
+    apiName: 'blog-api'
+    apiPath: 'blog'
     name: useAPIM ? apim.outputs.name : ''
     webFrontendUrl: webUri
     location: location

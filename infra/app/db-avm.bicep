@@ -6,8 +6,8 @@ param keyVaultResourceId string
 param connectionStringKey string = 'AZURE-COSMOS-CONNECTION-STRING'
 param collections array = [
   {
-    name: 'TodoList'
-    id: 'TodoList'
+    name: 'BlogPost'
+    id: 'BlogPost'
     shardKey: {
       keys: [
         'Hash'
@@ -24,8 +24,8 @@ param collections array = [
     ]
   }
   {
-    name: 'TodoItem'
-    id: 'TodoItem'
+    name: 'Comment'
+    id: 'Comment'
     shardKey: {
       keys: [
         'Hash'
@@ -43,7 +43,7 @@ param collections array = [
   }
 ]
 
-var defaultDatabaseName = 'Todo'
+var defaultDatabaseName = 'Blog'
 var actualDatabaseName = !empty(cosmosDatabaseName) ? cosmosDatabaseName : defaultDatabaseName
 
 module cosmos 'br/public:avm/res/document-db/database-account:0.6.0' = {

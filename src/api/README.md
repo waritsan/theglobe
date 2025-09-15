@@ -1,4 +1,4 @@
-# Python TODO API
+# Python Blog API
 
 ## Setup
 
@@ -23,7 +23,7 @@ Before running, set the `AZURE_COSMOS_CONNECTION_STRING` environment variable to
 Run the following common from the root of the api folder to start the app:
 
 ```bash
-$ uvicorn todo.app:app --port 3100 --reload
+$ uvicorn blog.app:app --port 3100 --reload
 ```
 
 There is also a launch profile in VS Code for debugging.
@@ -33,8 +33,8 @@ There is also a launch profile in VS Code for debugging.
 The environment variable AZURE_COSMOS_CONNECTION_STRING must be set and then application runs on TCP 8080:
 
 ```bash
-docker build . -t fastapi-todo
-docker run --env-file ./src/.env -p 8080:8080 -t fastapi-todo
+docker build . -t fastapi-blog
+docker run --env-file ./src/.env -p 8080:8080 -t fastapi-blog
 ```
 
 ## Tests

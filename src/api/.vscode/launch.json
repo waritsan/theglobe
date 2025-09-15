@@ -6,9 +6,9 @@
 			"type": "python",
 			"request": "launch",
 			"module": "uvicorn",
-            "cwd": "${workspaceFolder}/todo",
+            "cwd": "${workspaceFolder}/blog",
 			"args": [
-				"todo.app:app",
+				"blog.app:app",
 				"--reload"
 			],
 		},
@@ -17,7 +17,7 @@
 			"type": "python",
 			"request": "launch",
 			"module": "pytest",
-            "cwd": "${workspaceFolder}/todo",
+            "cwd": "${workspaceFolder}/blog",
 			"args": [
 				"${workspaceFolder}/tests", 
                 "-vv"
