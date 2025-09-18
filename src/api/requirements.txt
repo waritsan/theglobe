@@ -8,3 +8,5 @@ azure-identity == 1.21.0
 azure-keyvault-secrets == 4.4.*
 opentelemetry-instrumentation-fastapi == 0.42b0
 azure-monitor-opentelemetry-exporter == 1.0.0b19
+azure-ai-projects == 1.0.0b3
+pydantic == 1.10.*

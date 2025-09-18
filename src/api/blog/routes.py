@@ -12,6 +12,13 @@ from .models import (BlogPost, Category, Comment, CreateUpdateBlogPost,
                      CreateUpdateCategory, CreateUpdateComment)
 
 
+# Import the chat agent function
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chat'))
+from agent import chat_with_agent
+
+
 # Health check endpoint (no database dependency)
 @app.get("/health")
 async def health_check():
@@ -269,3 +276,24 @@ async def delete_comment(
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
     await comment.delete()
+
+
+# Chat endpoint
+from pydantic import BaseModel
+
+class ChatRequest(BaseModel):
+    message: str
+
+class ChatResponse(BaseModel):
+    response: str
+
+@app.post("/chat", response_model=ChatResponse)
+async def chat_endpoint(request: ChatRequest):
+    """
+    Chat with the AI agent
+    """
+    try:
+        response = await chat_with_agent(request.message)
+        return ChatResponse(response=response)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
