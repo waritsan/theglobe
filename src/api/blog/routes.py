@@ -12,11 +12,11 @@ from .models import (BlogPost, Category, Comment, CreateUpdateBlogPost,
                      CreateUpdateCategory, CreateUpdateComment)
 
 
-# Import the chat agent function
-import sys
-import os
-sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chat'))
-from agent import chat_with_agent
+# Import the chat agent function - lazy import to avoid initialization issues
+# import sys
+# import os
+# sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chat'))
+# from agent import chat_with_agent
 
 
 # Health check endpoint (no database dependency)
@@ -293,6 +293,12 @@ async def chat_endpoint(request: ChatRequest):
     Chat with the AI agent
     """
     try:
+        # Lazy import to avoid initialization issues during app startup
+        import sys
+        import os
+        sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chat'))
+        from agent import chat_with_agent
+        
         response = await chat_with_agent(request.message)
         return ChatResponse(response=response)
     except Exception as e:

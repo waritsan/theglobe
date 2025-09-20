@@ -32,7 +32,7 @@
                 }
             },
             "presentation": {
-                "panel": "dedicated",
+                "panel": "dedicated"
             },
             "problemMatcher": []
         },
@@ -45,17 +45,17 @@
             ],
             "file": "${input:dotEnvFilePath}"
         },
-		{
+        {
             "label": "Start Functions",
-			"type": "func",
-			"command": "host start --port 3100 --cors '*'",
-			"problemMatcher": "$func-python-watch",
-			"isBackground": true,
-			"dependsOn": "Restore API",
+            "type": "func",
+            "command": "host start --port 3100 --cors '*'",
+            "problemMatcher": "$func-python-watch",
+            "isBackground": true,
+            "dependsOn": "Restore API",
             "options": {
                 "cwd": "${workspaceFolder}/src/api"
             }
-		},
+        },
         {
             "label": "Restore API",
             "type": "shell",
@@ -67,11 +67,39 @@
         },
         {
             "label": "Start API and Web",
-            "dependsOn":[
+            "dependsOn": [
                 "Start API",
                 "Start Web"
             ],
             "problemMatcher": []
+        },
+        {
+            "type": "func",
+            "label": "func: host start",
+            "command": "host start",
+            "problemMatcher": "$func-python-watch",
+            "isBackground": true,
+            "dependsOn": "pip install (functions)",
+            "options": {
+                "cwd": "${workspaceFolder}/src/api"
+            }
+        },
+        {
+            "label": "pip install (functions)",
+            "type": "shell",
+            "osx": {
+                "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
+            },
+            "windows": {
+                "command": "${config:azureFunctions.pythonVenv}\\Scripts\\python -m pip install -r requirements.txt"
+            },
+            "linux": {
+                "command": "${config:azureFunctions.pythonVenv}/bin/python -m pip install -r requirements.txt"
+            },
+            "problemMatcher": [],
+            "options": {
+                "cwd": "${workspaceFolder}/src/api"
+            }
         }
     ],
 

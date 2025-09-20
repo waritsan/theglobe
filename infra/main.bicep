@@ -72,7 +72,7 @@ module api './app/api-appservice-avm.bicep' = {
       API_ALLOW_ORIGINS: webUri
       AZURE_COSMOS_CONNECTION_STRING_KEY: cosmos.outputs.connectionStringKey
       AZURE_COSMOS_DATABASE_NAME: cosmos.outputs.databaseName
-      AZURE_KEY_VAULT_ENDPOINT:keyVault.outputs.uri
+      AZURE_KEY_VAULT_ENDPOINT: keyVault.outputs.uri
       AZURE_COSMOS_ENDPOINT: 'https://${cosmos.outputs.databaseName}.documents.azure.com:443/'
       FUNCTIONS_EXTENSION_VERSION: '~4'
       FUNCTIONS_WORKER_RUNTIME: 'python'
@@ -82,7 +82,7 @@ module api './app/api-appservice-avm.bicep' = {
     siteConfig: {
       linuxFxVersion: 'python|3.10'
     }
-    allowedOrigins: [ webUri ]
+    allowedOrigins: [webUri]
     storageAccountResourceId: storage.outputs.resourceId
     clientAffinityEnabled: false
   }
@@ -148,8 +148,8 @@ module storage 'br/public:avm/res/storage/storage-account:0.8.3' = {
     name: !empty(storageAccountName) ? storageAccountName : '${abbrs.storageStorageAccounts}${resourceToken}'
     allowBlobPublicAccess: true
     dnsEndpointType: 'Standard'
-    publicNetworkAccess:'Enabled'
-    networkAcls:{
+    publicNetworkAccess: 'Enabled'
+    networkAcls: {
       bypass: 'AzureServices'
       defaultAction: 'Allow'
     }
@@ -179,9 +179,15 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   name: 'monitoring'
   scope: rg
   params: {
-    applicationInsightsName: !empty(applicationInsightsName) ? applicationInsightsName : '${abbrs.insightsComponents}${resourceToken}'
-    logAnalyticsName: !empty(logAnalyticsName) ? logAnalyticsName : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
-    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName) ? applicationInsightsDashboardName : '${abbrs.portalDashboards}${resourceToken}'
+    applicationInsightsName: !empty(applicationInsightsName)
+      ? applicationInsightsName
+      : '${abbrs.insightsComponents}${resourceToken}'
+    logAnalyticsName: !empty(logAnalyticsName)
+      ? logAnalyticsName
+      : '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    applicationInsightsDashboardName: !empty(applicationInsightsDashboardName)
+      ? applicationInsightsDashboardName
+      : '${abbrs.portalDashboards}${resourceToken}'
     location: location
     tags: tags
   }
@@ -246,4 +252,5 @@ output AZURE_TENANT_ID string = tenant().tenantId
 output API_BASE_URL string = useAPIM ? apimApi.outputs.serviceApiUri : api.outputs.SERVICE_API_URI
 output REACT_APP_WEB_BASE_URL string = webUri
 output USE_APIM bool = useAPIM
-output SERVICE_API_ENDPOINTS array = useAPIM ? [ apimApi.outputs.serviceApiUri, api.outputs.SERVICE_API_URI ]: []
+output SERVICE_API_ENDPOINTS array = useAPIM ? [apimApi.outputs.serviceApiUri, api.outputs.SERVICE_API_URI] : []
+

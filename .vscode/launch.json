@@ -12,9 +12,8 @@
             "url": "http://localhost:5174",
             "sourceMapPathOverrides": {
                 "webpack:///src/*": "${webRoot}/*"
-            },
+            }
         },
-
         {
             "name": "Debug API",
             "type": "debugpy",
@@ -23,7 +22,8 @@
             "cwd": "${workspaceFolder}/src/api",
             "args": [
                 "blog.app:app",
-                "--port", "3101",
+                "--port",
+                "3101",
                 "--reload"
             ],
             "justMyCode": true,
@@ -34,8 +34,18 @@
             },
             "preLaunchTask": "Restore API",
             "env": {
-                "API_ENVIRONMENT":"develop"
+                "API_ENVIRONMENT": "develop"
             }
+        },
+        {
+            "name": "Attach to Python Functions",
+            "type": "debugpy",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 9091
+            },
+            "preLaunchTask": "func: host start"
         }
     ],
 

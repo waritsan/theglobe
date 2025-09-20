@@ -13,8 +13,12 @@ class Settings(BaseSettings):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Load secrets from keyvault only if endpoint is available and we're not in CI
-        if self.AZURE_KEY_VAULT_ENDPOINT and not os.getenv('CI'):
+        # Only try to load from Key Vault if we don't already have the required settings from env vars
+        # and Key Vault endpoint is available and we're not in CI
+        required_settings = ['AZURE_AI_ENDPOINT', 'AZURE_AGENT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_TENANT_ID']
+        has_required_env_vars = all(getattr(self, setting, None) for setting in required_settings)
+        
+        if not has_required_env_vars and self.AZURE_KEY_VAULT_ENDPOINT and not os.getenv('CI'):
             try:
                 credential = DefaultAzureCredential()
                 keyvault_client = SecretClient(self.AZURE_KEY_VAULT_ENDPOINT, credential)

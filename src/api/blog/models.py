@@ -15,16 +15,25 @@ class Settings(BaseSettings):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Load secrets from keyvault
-        if self.AZURE_KEY_VAULT_ENDPOINT:
-            credential = DefaultAzureCredential()
-            keyvault_client = SecretClient(self.AZURE_KEY_VAULT_ENDPOINT, credential)
-            for secret in keyvault_client.list_properties_of_secrets():
-                setattr(
-                    self,
-                    keyvault_name_as_attr(secret.name),
-                    keyvault_client.get_secret(secret.name).value,
-                )
+        # Only try to load from Key Vault if we don't already have the required settings from env vars
+        # and Key Vault endpoint is available
+        required_settings = ['AZURE_COSMOS_CONNECTION_STRING']
+        has_required_env_vars = all(getattr(self, setting, None) for setting in required_settings)
+        
+        if not has_required_env_vars and self.AZURE_KEY_VAULT_ENDPOINT:
+            try:
+                credential = DefaultAzureCredential()
+                keyvault_client = SecretClient(self.AZURE_KEY_VAULT_ENDPOINT, credential)
+                for secret in keyvault_client.list_properties_of_secrets():
+                    if secret.name:
+                        setattr(
+                            self,
+                            keyvault_name_as_attr(secret.name),
+                            keyvault_client.get_secret(secret.name).value,
+                        )
+            except Exception as e:
+                print(f"Warning: Could not load secrets from Key Vault: {e}")
+                print("Falling back to environment variables...")
 
     AZURE_COSMOS_CONNECTION_STRING: str = ""
     AZURE_COSMOS_DATABASE_NAME: str = "Blog"

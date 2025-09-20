@@ -1,8 +1,14 @@
 {
-    "azureFunctions.deploySubpath": "./src/api",
+    "bicep.enablePreviewFeatures": false,
+    "bicep.trace.server": "off",
+    "bicep.enableArmSchema": false,
+    "bicep.enableDeploy": false,
+    "bicep.enableOutputTimestamps": false,
+    "azureFunctions.deploySubpath": "src/api",
     "azureFunctions.scmDoBuildDuringDeployment": true,
     "azureFunctions.pythonVenv": "api_env",
     "azureFunctions.projectLanguage": "Python",
     "azureFunctions.projectRuntime": "~4",
-    "debug.internalConsoleOptions": "neverOpen"
+    "debug.internalConsoleOptions": "neverOpen",
+    "azureFunctions.projectSubpath": "src/api"
 }
