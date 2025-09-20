@@ -33,8 +33,6 @@ class Settings(BaseSettings):
                 print(f"Key Vault access failed: {e}, using environment variables")
         else:
             print("Key Vault not configured or in CI, using environment variables")
-        else:
-            print("Key Vault not configured or in CI, using environment variables")
 
     AZURE_AI_ENDPOINT: str = ""
     AZURE_AGENT_ID: str = ""
