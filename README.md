@@ -92,16 +92,51 @@ description: A modern blog and news platform with Python FastAPI backend, React 
 
 ### Azure Deployment
 
-```bash
-# Log in to azd
-azd auth login
+1. **Initialize and provision infrastructure**
+   ```bash
+   # Log in to azd
+   azd auth login
 
-# Initialize project
-azd init
+   # Initialize project (if not already done)
+   azd init
 
-# Provision and deploy to Azure
-azd up
-```
+   # Provision Azure resources
+   azd provision
+   ```
+
+2. **Set up Azure AI secrets**
+   
+   After provisioning, you need to populate the Key Vault with your Azure AI credentials:
+   
+   ```bash
+   # Copy the template and fill in your values
+   cp .env.template .env
+   # Edit .env with your actual Azure AI credentials
+   
+   # Source the environment variables and run the script
+   source .env
+   ./scripts/set-secrets.sh
+   
+   # Or set environment variables directly:
+   export AZURE_AI_ENDPOINT="https://your-ai-resource.openai.azure.com/"
+   export AZURE_AGENT_ID="your-agent-id"
+   export AZURE_CLIENT_ID="your-client-id"
+   export AZURE_CLIENT_SECRET="your-client-secret"
+   export AZURE_TENANT_ID="your-tenant-id"
+   ./scripts/set-secrets.sh
+   ```
+
+3. **Deploy the application**
+   ```bash
+   azd deploy
+   ```
+
+4. **Get the application URLs**
+   ```bash
+   azd show
+   ```
+
+**Note**: The `set-secrets.sh` script automatically detects your Key Vault name from the azd environment, so you don't need to hardcode any infrastructure names.
 
 ## Application Architecture
 

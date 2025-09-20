@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getApiUrl } from '../config'
 
 interface Message {
   id: string
@@ -49,17 +50,41 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
     setInputValue('')
     setIsTyping(true)
 
-    // Simulate AI response (replace with actual Azure AI Foundry integration later)
-    setTimeout(() => {
+    try {
+      // Call the actual chat API
+      const response = await fetch(getApiUrl('/chat'), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ message: userMessage.text }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: t('chat.aiResponse'),
+        text: data.response,
         sender: 'ai',
         timestamp: new Date()
       }
       setMessages(prev => [...prev, aiMessage])
+    } catch (error) {
+      console.error('Chat API error:', error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: 'Sorry, I encountered an error. Please try again later.',
+        sender: 'ai',
+        timestamp: new Date()
+      }
+      setMessages(prev => [...prev, errorMessage])
+    } finally {
       setIsTyping(false)
-    }, 1500)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {

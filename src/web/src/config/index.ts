@@ -1,5 +1,5 @@
 export const config = {
-  apiBaseUrl: 'https://app-api-hla54ovhrzo3e.azurewebsites.net',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'https://app-api-hla54ovhrzo3e.azurewebsites.net',
   applicationInsightsConnectionString: import.meta.env.VITE_APPLICATIONINSIGHTS_CONNECTION_STRING || '',
 };
 

@@ -52,12 +52,11 @@ const resources = {
 
       // Chat
       "chat.title": "AI Assistant",
-      "chat.welcome": "Hello! I'm your AI assistant powered by Azure AI Foundry. How can I help you today?",
+      "chat.welcome": "Hello! I'm your AI assistant. How can I help you today?",
       "chat.placeholder": "Type your message here...",
       "chat.backToBlog": "Back to Blog",
-      "chat.aiResponse": "Thank you for your message! This is a demo response. Azure AI Foundry integration will be added next.",
-      "chat.info.title": "Azure AI Foundry Integration",
-      "chat.info.description": "This chat interface will be connected to Azure AI Foundry Agent service for intelligent conversations and assistance.",
+      "chat.info.title": "AI Chat",
+      "chat.info.description": "Chat with our AI assistant powered by Azure AI Foundry. Currently running in development mode with mock responses.",
 
       // Common
       "common.loading": "Loading...",
@@ -148,12 +147,11 @@ const resources = {
 
       // Chat
       "chat.title": "ผู้ช่วย AI",
-      "chat.welcome": "สวัสดี! ฉันเป็นผู้ช่วย AI ของคุณที่ขับเคลื่อนโดย Azure AI Foundry ฉันสามารถช่วยคุณได้อย่างไรวันนี้?",
+      "chat.welcome": "สวัสดี! ฉันเป็นผู้ช่วย AI ของคุณ ฉันสามารถช่วยคุณได้อย่างไรวันนี้?",
       "chat.placeholder": "พิมพ์ข้อความของคุณที่นี่...",
       "chat.backToBlog": "กลับไปที่ข่าวสาร",
-      "chat.aiResponse": "ขอบคุณสำหรับข้อความของคุณ! นี่เป็นการตอบกลับตัวอย่าง การเชื่อมต่อ Azure AI Foundry จะถูกเพิ่มในขั้นตอนต่อไป",
-      "chat.info.title": "การเชื่อมต่อ Azure AI Foundry",
-      "chat.info.description": "อินเทอร์เฟซแชทนี้จะเชื่อมต่อกับบริการ Azure AI Foundry Agent สำหรับการสนทนาและความช่วยเหลือที่ชาญฉลาด",
+      "chat.info.title": "แชท AI",
+      "chat.info.description": "สนทนากับผู้ช่วย AI ของเราโดยใช้ Azure AI Foundry ปัจจุบันทำงานในโหมดพัฒนาพร้อมการตอบกลับจำลอง",
 
       // Common
       "common.loading": "กำลังโหลด...",

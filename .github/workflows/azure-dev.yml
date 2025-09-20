@@ -55,6 +55,9 @@ jobs:
           func host start --port 3100 &
           sleep 10
         working-directory: src/api
+        env:
+          CI: true
+          API_ENVIRONMENT: develop
 
       - name: Install web dependencies
         run: npm install

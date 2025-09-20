@@ -94,22 +94,17 @@ module accessKeyVault 'br/public:avm/res/key-vault/vault:0.5.1' = {
   scope: rg
   params: {
     name: keyVault.outputs.name
-    enableRbacAuthorization: false
+    location: location
     enableVaultForDeployment: false
     enableVaultForTemplateDeployment: false
-    enablePurgeProtection: false
-    sku: 'standard'
     accessPolicies: [
       {
         objectId: api.outputs.SERVICE_API_IDENTITY_PRINCIPAL_ID
         permissions: {
-          secrets: [ 'get', 'list' ]
-        }
-      }
-      {
-        objectId: principalId
-        permissions: {
-          secrets: [ 'get', 'list' ]
+          secrets: [
+            'get'
+            'list'
+          ]
         }
       }
     ]

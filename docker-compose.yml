@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./src/api
+      dockerfile: Dockerfile
+    ports:
+      - "3100:3100"
+    environment:
+      - AZURE_KEY_VAULT_ENDPOINT=
+      - AZURE_AI_ENDPOINT=https://aif-instance-1.services.ai.azure.com/api/projects/aif-project-1
+      - AZURE_AGENT_ID=asst_FJ7TC1hI1n2rI2Udpwyu2EZ1
+      - AZURE_CLIENT_ID=your-client-id
+      - AZURE_CLIENT_SECRET=your-client-secret
+      - AZURE_TENANT_ID=your-tenant-id
+      - AZURE_COSMOS_CONNECTION_STRING=mongodb://mongodb:27017/blog
+      - AZURE_COSMOS_DATABASE_NAME=Blog
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=
+      - API_ENVIRONMENT=develop
+      - API_ALLOW_ORIGINS=http://localhost
+    depends_on:
+      - mongodb
+    networks:
+      - theglobe-network
+
+  web:
+    build:
+      context: ./src/web
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:3100
+      - VITE_APPLICATIONINSIGHTS_CONNECTION_STRING=
+    depends_on:
+      - api
+    networks:
+      - theglobe-network
+
+  mongodb:
+    image: mongo:6.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=blog
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - theglobe-network
+
+volumes:
+  mongodb_data:
+
+networks:
+  theglobe-network:
+    driver: bridge
