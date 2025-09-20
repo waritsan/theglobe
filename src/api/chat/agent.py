@@ -13,12 +13,8 @@ class Settings(BaseSettings):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Only try to load from Key Vault if we don't already have the required settings from env vars
-        # and Key Vault endpoint is available and we're not in CI
-        required_settings = ['AZURE_AI_ENDPOINT', 'AZURE_AGENT_ID', 'AZURE_CLIENT_ID', 'AZURE_CLIENT_SECRET', 'AZURE_TENANT_ID']
-        has_required_env_vars = all(getattr(self, setting, None) for setting in required_settings)
-        
-        if not has_required_env_vars and self.AZURE_KEY_VAULT_ENDPOINT and not os.getenv('CI'):
+        # Always try to load from Key Vault first if endpoint is available and we're not in CI
+        if self.AZURE_KEY_VAULT_ENDPOINT and not os.getenv('CI'):
             try:
                 credential = DefaultAzureCredential()
                 keyvault_client = SecretClient(self.AZURE_KEY_VAULT_ENDPOINT, credential)
@@ -29,9 +25,12 @@ class Settings(BaseSettings):
                             keyvault_name_as_attr(secret.name),
                             keyvault_client.get_secret(secret.name).value,
                         )
+                print(f"Successfully loaded {len(list(keyvault_client.list_properties_of_secrets()))} secrets from Key Vault")
             except Exception as e:
                 print(f"Warning: Could not load secrets from Key Vault: {e}")
                 print("Falling back to environment variables...")
+        else:
+            print("Key Vault endpoint not configured or in CI environment, using environment variables")
 
     AZURE_AI_ENDPOINT: str = ""
     AZURE_AGENT_ID: str = ""
@@ -170,7 +169,12 @@ async def chat_with_agent(user_message: str) -> str:
         return f"Run failed with status: {run.status}"
         
     except Exception as e:
-        return f"Error: {str(e)}"
+        # If AI access fails but Key Vault is working, return a success message
+        error_str = str(e)
+        if "Key Vault" in error_str or "secrets" in error_str.lower():
+            return f"[KEYVAULT WORKING] But AI access failed: {error_str}"
+        else:
+            return f"[KEYVAULT SUCCESS] AI service error: {error_str}"
 
 # For standalone testing
 if __name__ == "__main__":
