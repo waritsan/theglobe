@@ -40,26 +40,39 @@ class Settings(BaseSettings):
 # Load settings from environment and key vault
 settings = Settings()
 
-# Parse the base endpoint from the AI endpoint
-# AZURE_AI_ENDPOINT = "https://aif-instance-1.services.ai.azure.com/api/projects/aif-project-1"
-# We need: "https://aif-instance-1.openai.azure.com/"
-endpoint = settings.AZURE_AI_ENDPOINT
-if not endpoint:
-    raise ValueError("AZURE_AI_ENDPOINT environment variable is not set")
+# Global variables for lazy initialization
+_client = None
+_openai_endpoint = None
+_agent_id = None
 
-# Extract the instance name from the AI endpoint
-import re
-match = re.search(r'https://([^.]+)\.services\.ai\.azure\.com', endpoint)
-if not match:
-    raise ValueError("Could not parse instance name from AZURE_AI_ENDPOINT")
-instance_name = match.group(1)
+def _validate_and_parse_settings():
+    """Lazy validation and parsing of settings"""
+    global _openai_endpoint, _agent_id
+    
+    if _openai_endpoint is None:
+        # Parse the base endpoint from the AI endpoint
+        # AZURE_AI_ENDPOINT = "https://aif-instance-1.services.ai.azure.com/api/projects/aif-project-1"
+        # We need: "https://aif-instance-1.openai.azure.com/"
+        endpoint = settings.AZURE_AI_ENDPOINT
+        if not endpoint:
+            raise ValueError("AZURE_AI_ENDPOINT environment variable is not set")
 
-# Build the OpenAI endpoint
-openai_endpoint = f"https://{instance_name}.openai.azure.com/"
+        # Extract the instance name from the AI endpoint
+        import re
+        match = re.search(r'https://([^.]+)\.services\.ai\.azure\.com', endpoint)
+        if not match:
+            raise ValueError("Could not parse instance name from AZURE_AI_ENDPOINT")
+        instance_name = match.group(1)
 
-agent_id = settings.AZURE_AGENT_ID
-if not agent_id:
-    raise ValueError("AZURE_AGENT_ID environment variable is not set")
+        # Build the OpenAI endpoint
+        _openai_endpoint = f"https://{instance_name}.openai.azure.com/"
+    
+    if _agent_id is None:
+        _agent_id = settings.AZURE_AGENT_ID
+        if not _agent_id:
+            raise ValueError("AZURE_AGENT_ID environment variable is not set")
+    
+    return _openai_endpoint, _agent_id
 
 # Global variables for lazy initialization
 _client = None
@@ -69,6 +82,8 @@ def get_openai_client():
     global _client
     if _client is None:
         try:
+            openai_endpoint, agent_id = _validate_and_parse_settings()
+            
             # Try service principal authentication first
             client_id = settings.AZURE_CLIENT_ID
             client_secret = settings.AZURE_CLIENT_SECRET
@@ -107,6 +122,7 @@ async def chat_with_agent(user_message: str) -> str:
         return f"[DEV/CI MODE] I received your message: '{user_message}'. This is a mock response for local testing. To use real AI chat, configure your Azure credentials in Key Vault or environment variables."
     
     try:
+        openai_endpoint, agent_id = _validate_and_parse_settings()
         client = get_openai_client()
         
         # Create a thread
