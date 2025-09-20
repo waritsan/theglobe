@@ -13,24 +13,28 @@ class Settings(BaseSettings):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Always try to load from Key Vault first if endpoint is available and we're not in CI
+        # Try to load from Key Vault first if endpoint is available, but fall back to env vars
         if self.AZURE_KEY_VAULT_ENDPOINT and not os.getenv('CI'):
             try:
                 credential = DefaultAzureCredential()
                 keyvault_client = SecretClient(self.AZURE_KEY_VAULT_ENDPOINT, credential)
+                secrets_loaded = 0
                 for secret in keyvault_client.list_properties_of_secrets():
                     if secret.name:
-                        setattr(
-                            self,
-                            keyvault_name_as_attr(secret.name),
-                            keyvault_client.get_secret(secret.name).value,
-                        )
-                print(f"Successfully loaded {len(list(keyvault_client.list_properties_of_secrets()))} secrets from Key Vault")
+                        value = keyvault_client.get_secret(secret.name).value
+                        if value:  # Only set if value is not empty
+                            setattr(self, keyvault_name_as_attr(secret.name), value)
+                            secrets_loaded += 1
+                if secrets_loaded > 0:
+                    print(f"Successfully loaded {secrets_loaded} secrets from Key Vault")
+                else:
+                    print("Key Vault accessible but no secrets found, using environment variables")
             except Exception as e:
-                print(f"Warning: Could not load secrets from Key Vault: {e}")
-                print("Falling back to environment variables...")
+                print(f"Key Vault access failed: {e}, using environment variables")
         else:
-            print("Key Vault endpoint not configured or in CI environment, using environment variables")
+            print("Key Vault not configured or in CI, using environment variables")
+        else:
+            print("Key Vault not configured or in CI, using environment variables")
 
     AZURE_AI_ENDPOINT: str = ""
     AZURE_AGENT_ID: str = ""
