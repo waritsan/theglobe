@@ -280,17 +280,21 @@ async def delete_comment(
 
 # Chat endpoint
 from pydantic import BaseModel
+from typing import List, Dict, Optional
 
 class ChatRequest(BaseModel):
     message: str
+    conversation_history: Optional[List[Dict[str, str]]] = None
+    conversation_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
     response: str
+    conversation_id: str
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    Chat with the AI agent
+    Chat with the AI agent with conversation history support
     """
     try:
         # Lazy import to avoid initialization issues during app startup
@@ -299,7 +303,7 @@ async def chat_endpoint(request: ChatRequest):
         sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'chat'))
         from agent import chat_with_agent
         
-        response = await chat_with_agent(request.message)
-        return ChatResponse(response=response)
+        result = await chat_with_agent(request.message, request.conversation_history, request.conversation_id)
+        return ChatResponse(response=result["response"], conversation_id=result["conversation_id"])
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")

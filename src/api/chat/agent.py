@@ -1,6 +1,7 @@
 import os
 import json
 import asyncio
+from typing import List, Dict, Optional
 from openai import AsyncAzureOpenAI
 from azure.identity import DefaultAzureCredential, ClientSecretCredential
 from azure.keyvault.secrets import SecretClient
@@ -117,28 +118,80 @@ def get_openai_client():
             raise
     return _client
 
-async def chat_with_agent(user_message: str) -> str:
+async def chat_with_agent(user_message: str, conversation_history: Optional[List[Dict[str, str]]] = None, conversation_id: Optional[str] = None) -> dict:
     """
-    Asynchronous function to chat with the OpenAI assistant
+    Asynchronous function to chat with the OpenAI assistant with conversation history
+    
+    Args:
+        user_message: The user's message
+        conversation_history: List of previous messages in format [{"role": "user/assistant", "content": "message"}]
+    
+    Returns:
+        Dict with response and conversation_id
     """
     # Check if we're in development mode or CI (no real Azure credentials)
     if settings.API_ENVIRONMENT == "develop" or not settings.AZURE_CLIENT_ID or settings.AZURE_CLIENT_ID == "your-client-id" or os.getenv('CI'):
         # Return a mock response for local development or CI
-        return f"[DEV/CI MODE] I received your message: '{user_message}'. This is a mock response for local testing. To use real AI chat, configure your Azure credentials in Key Vault or environment variables."
+        return {
+            "response": f"[DEV/CI MODE] I received your message: '{user_message}'. This is a mock response for local testing. To use real AI chat, configure your Azure credentials in Key Vault or environment variables.",
+            "conversation_id": "dev-mode"
+        }
     
     try:
         openai_endpoint, agent_id = _validate_and_parse_settings()
         client = get_openai_client()
         
-        # Create a thread
-        thread = await client.beta.threads.create()
-        
-        # Add message to thread
-        message = await client.beta.threads.messages.create(
-            thread_id=thread.id,
-            role="user",
-            content=user_message
-        )
+        # Try to reuse existing thread if conversation_id is provided
+        if conversation_id:
+            try:
+                # Check if the thread still exists
+                existing_thread = await client.beta.threads.retrieve(thread_id=conversation_id)
+                thread = existing_thread
+                # Add the new message to existing thread
+                await client.beta.threads.messages.create(
+                    thread_id=thread.id,
+                    role="user",
+                    content=user_message
+                )
+            except Exception:
+                # Thread doesn't exist or is invalid, create new one
+                print(f"Could not reuse thread {conversation_id}, creating new thread")
+                thread = await client.beta.threads.create()
+                # Add conversation history if provided
+                if conversation_history:
+                    for msg in conversation_history[-10:]:  # Limit to last 10 messages
+                        role = msg["role"] if msg["role"] in ["user", "assistant"] else "user"
+                        await client.beta.threads.messages.create(
+                            thread_id=thread.id,
+                            role=role,  # type: ignore
+                            content=msg["content"]
+                        )
+                # Add the current user message
+                await client.beta.threads.messages.create(
+                    thread_id=thread.id,
+                    role="user",
+                    content=user_message
+                )
+        else:
+            # Create a new thread for the conversation
+            thread = await client.beta.threads.create()
+            
+            # Add conversation history if provided
+            if conversation_history:
+                for msg in conversation_history[-10:]:  # Limit to last 10 messages to avoid token limits
+                    role = msg["role"] if msg["role"] in ["user", "assistant"] else "user"
+                    await client.beta.threads.messages.create(
+                        thread_id=thread.id,
+                        role=role,  # type: ignore
+                        content=msg["content"]
+                    )
+            
+            # Add the current user message
+            await client.beta.threads.messages.create(
+                thread_id=thread.id,
+                role="user",
+                content=user_message
+            )
         
         # Create and run the assistant
         if not agent_id:
@@ -158,25 +211,37 @@ async def chat_with_agent(user_message: str) -> str:
             )
             
         if run.status == "completed":
-            # Get messages
-            messages = await client.beta.threads.messages.list(thread_id=thread.id)
+            # Get the latest assistant message
+            messages = await client.beta.threads.messages.list(thread_id=thread.id, limit=1)
             for message in messages.data:
                 if message.role == "assistant":
                     # Handle different content types safely
                     for content in message.content:
                         # Use type checking to safely access text content
                         if str(type(content).__name__) == 'TextContentBlock':
-                            return content.text.value  # type: ignore
-                    
-        return f"Run failed with status: {run.status}"
+                            return {
+                                "response": content.text.value,  # type: ignore
+                                "conversation_id": thread.id
+                            }
+        
+        return {
+            "response": f"Run failed with status: {run.status}",
+            "conversation_id": thread.id
+        }
         
     except Exception as e:
         # If AI access fails but Key Vault is working, return a success message
         error_str = str(e)
         if "Key Vault" in error_str or "secrets" in error_str.lower():
-            return f"[KEYVAULT WORKING] But AI access failed: {error_str}"
+            return {
+                "response": f"[KEYVAULT WORKING] But AI access failed: {error_str}",
+                "conversation_id": "error"
+            }
         else:
-            return f"[KEYVAULT SUCCESS] AI service error: {error_str}"
+            return {
+                "response": f"[KEYVAULT SUCCESS] AI service error: {error_str}",
+                "conversation_id": "error"
+            }
 
 # For standalone testing
 if __name__ == "__main__":

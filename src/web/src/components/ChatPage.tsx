@@ -27,6 +27,7 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
   ])
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
+  const [conversationId, setConversationId] = useState<string>('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -34,9 +35,59 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const clearChatHistory = () => {
+    setMessages([
+      {
+        id: '1',
+        text: t('chat.welcome'),
+        sender: 'ai',
+        timestamp: new Date()
+      }
+    ])
+    setConversationId('')
+    localStorage.removeItem('chatMessages')
+    localStorage.removeItem('conversationId')
+  }
+
   useEffect(() => {
     scrollToBottom()
   }, [messages])
+
+  // Load conversation history from localStorage on component mount
+  useEffect(() => {
+    const savedMessages = localStorage.getItem('chatMessages')
+    const savedConversationId = localStorage.getItem('conversationId')
+    
+    if (savedMessages) {
+      try {
+        const parsedMessages = JSON.parse(savedMessages)
+        // Only load if there are actual conversation messages (more than just welcome)
+        if (parsedMessages.length > 1) {
+          setMessages(parsedMessages)
+        }
+      } catch (error) {
+        console.error('Failed to parse saved messages:', error)
+      }
+    }
+    
+    if (savedConversationId) {
+      setConversationId(savedConversationId)
+    }
+  }, [])
+
+  // Save conversation history to localStorage whenever messages change
+  useEffect(() => {
+    if (messages.length > 1) { // Don't save if only welcome message
+      localStorage.setItem('chatMessages', JSON.stringify(messages))
+    }
+  }, [messages])
+
+  // Save conversation ID to localStorage
+  useEffect(() => {
+    if (conversationId) {
+      localStorage.setItem('conversationId', conversationId)
+    }
+  }, [conversationId])
 
   const handleSendMessage = async () => {
     if (!inputValue.trim()) return
@@ -48,18 +99,32 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
       timestamp: new Date()
     }
 
+    // Add user message to state immediately for UI feedback
     setMessages(prev => [...prev, userMessage])
     setInputValue('')
     setIsTyping(true)
 
     try {
-      // Call the actual chat API
+      // Prepare conversation history (exclude welcome message only - don't include current message)
+      const conversationHistory = messages
+        .filter(msg => !msg.text.includes('สวัสดีค่ะ ดิฉันเป็นผู้ช่วย AI')) // Exclude welcome message
+        .slice(-10) // Keep last 10 messages to avoid token limits
+        .map(msg => ({
+          role: msg.sender === 'user' ? 'user' : 'assistant',
+          content: msg.text
+        }))
+
+      // Call the actual chat API with conversation history
       const response = await fetch(getApiUrl('/chat'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message: userMessage.text }),
+        body: JSON.stringify({ 
+          message: userMessage.text,
+          conversation_history: conversationHistory,
+          conversation_id: conversationId || undefined
+        }),
       })
 
       if (!response.ok) {
@@ -74,7 +139,14 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
         sender: 'ai',
         timestamp: new Date()
       }
+      
+      // Add AI message to state
       setMessages(prev => [...prev, aiMessage])
+      
+      // Store conversation ID
+      if (data.conversation_id) {
+        setConversationId(data.conversation_id)
+      }
     } catch (error) {
       console.error('Chat API error:', error)
       const errorMessage: Message = {
@@ -112,7 +184,18 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           {t('chat.title')}
         </h1>
-        <div className="w-20"></div> {/* Spacer for centering */}
+        <div className="flex items-center gap-2">
+          <button
+            onClick={clearChatHistory}
+            className="flex items-center gap-2 px-3 py-1 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            title="Clear chat history"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+            Clear
+          </button>
+        </div>
       </div>
 
       {/* Chat Container */}
