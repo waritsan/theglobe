@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { getApiUrl } from '../config'
+import ReactMarkdown from 'react-markdown'
+import rehypeSanitize from 'rehype-sanitize'
 
 interface Message {
   id: string
@@ -129,7 +131,15 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
                     : 'bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white'
                 }`}
               >
-                <p className="text-sm">{message.text}</p>
+                {message.sender === 'ai' ? (
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <ReactMarkdown rehypePlugins={[rehypeSanitize]}>
+                      {message.text}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  <p className="text-sm">{message.text}</p>
+                )}
                 <p className={`text-xs mt-1 ${
                   message.sender === 'user'
                     ? 'text-blue-100'
