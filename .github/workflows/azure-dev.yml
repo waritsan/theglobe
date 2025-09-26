@@ -44,8 +44,10 @@ jobs:
 
       - name: Install Azure Functions Core Tools
         run: |
-          sudo apt-get update
-          sudo apt-get install azure-functions-core-tools-4
+          # Install via npm which is reliable on Ubuntu runners
+          npm install -g azure-functions-core-tools@4 --unsafe-perm=true
+          echo "func binary: $(which func || true)"
+          func --version || true
 
       - name: Install API dependencies
         run: pip install -r requirements.txt
@@ -54,7 +56,8 @@ jobs:
       - name: Start API (background)
         run: |
           # Start the Functions host bound to the IPv4 loopback using nohup so it survives the step
-          nohup func host start --port 3100 --host 127.0.0.1 > /tmp/func.log 2>&1 &
+          # Use verbose logging to capture errors in /tmp/func.log
+          nohup func host start --verbose --port 3100 --host 127.0.0.1 > /tmp/func.log 2>&1 &
           echo $! > /tmp/func.pid
 
           # Poll the /db-status endpoint until it reports connected (timeout ~120s)
@@ -68,17 +71,27 @@ jobs:
               echo "DB status connected"
               break
             fi
+            # Print tail of func log every 6 attempts to show progress
+            if [ $((i % 6)) -eq 0 ]; then
+              echo "---- last func log lines ----"
+              tail -n 80 /tmp/func.log || true
+              echo "---- end func log ----"
+            fi
             sleep 5
           done
           if ! echo "$RESP" | grep -q '"status":"connected"'; then
             echo "Timed out waiting for /db-status. Showing /tmp/func.log"
             sed -n '1,200p' /tmp/func.log || true
+            # Upload func log for debugging (artifact step will also capture it)
+            cat /tmp/func.log || true
             exit 1
           fi
         working-directory: src/api
         env:
           CI: true
           API_ENVIRONMENT: develop
+          # Ensure the Functions host starts non-interactively with the Python worker
+          FUNCTIONS_WORKER_RUNTIME: python
 
       - name: Install web dependencies
         run: npm install
@@ -108,6 +121,14 @@ jobs:
           name: playwright-report
           path: tests/playwright-report/
           retention-days: 30
+
+      - name: Upload Function host log
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: func-log
+          path: /tmp/func.log
+          retention-days: 7
 
   build:
     runs-on: ubuntu-latest
