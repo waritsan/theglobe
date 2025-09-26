@@ -41,8 +41,10 @@ test("Blog application loads and displays content", async ({ page }) => {
 
 test("API connectivity test", async ({ page }) => {
   try {
-    // Test direct API access
-    const apiResponse = await page.request.get('https://app-api-hla54ovhrzo3e.azurewebsites.net/posts');
+    // Test direct API access. Read target host from environment so CI can point to a local API
+    const API_BASE = process.env.API_BASE_URL || 'http://localhost:3100';
+    const trimmedBase = API_BASE.replace(/\/$/, '');
+    const apiResponse = await page.request.get(`${trimmedBase}/posts`);
     expect(apiResponse.ok()).toBe(true);
 
     const apiData = await apiResponse.json();
