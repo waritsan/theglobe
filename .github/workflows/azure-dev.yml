@@ -53,16 +53,28 @@ jobs:
 
       - name: Start API (background)
         run: |
-          # Start the Functions host bound to the IPv4 loopback and wait for readiness
-          func host start --port 3100 --host 127.0.0.1 &
-          # Poll the health endpoint until it's available (timeout ~40s)
-          for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
-            if curl -sS http://127.0.0.1:3100/health >/dev/null 2>&1; then
-              echo "API is up"; break
+          # Start the Functions host bound to the IPv4 loopback using nohup so it survives the step
+          nohup func host start --port 3100 --host 127.0.0.1 > /tmp/func.log 2>&1 &
+          echo $! > /tmp/func.pid
+
+          # Poll the /db-status endpoint until it reports connected (timeout ~120s)
+          ATTEMPTS=24
+          for i in $(seq 1 $ATTEMPTS); do
+            echo "Checking db-status (attempt $i/$ATTEMPTS)"
+            set +e
+            RESP=$(curl -sS http://127.0.0.1:3100/db-status || true)
+            set -e
+            if [ -n "$RESP" ] && echo "$RESP" | grep -q '"status":"connected"'; then
+              echo "DB status connected"
+              break
             fi
-            echo "Waiting for API... attempt $i"
-            sleep 2
+            sleep 5
           done
+          if ! echo "$RESP" | grep -q '"status":"connected"'; then
+            echo "Timed out waiting for /db-status. Showing /tmp/func.log"
+            sed -n '1,200p' /tmp/func.log || true
+            exit 1
+          fi
         working-directory: src/api
         env:
           CI: true

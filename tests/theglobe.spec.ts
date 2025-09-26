@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 // Increase timeout for slow CI environments
-test.setTimeout(90000);
+test.setTimeout(180000);
 
 test("Blog application loads and displays content", async ({ page }) => {
   try {
@@ -62,12 +62,12 @@ test("API connectivity test", async ({ page }) => {
     const API_BASE = process.env.API_BASE_URL || 'http://127.0.0.1:3100';
     const trimmedBase = API_BASE.replace(/\/$/, '');
 
-    // Retry API request with diagnostics to allow the API to finish warming up
-    let apiResponse = null;
-    const attempts: Array<any> = [];
-  // Allow more attempts in CI where startup can be slower
-  const maxAttempts = 10;
-  for (let i = 0; i < maxAttempts; i++) {
+      // Retry API request with diagnostics to allow the API to finish warming up
+      let apiResponse = null;
+      const attempts: Array<any> = [];
+      // Allow more attempts in CI where startup can be slower
+      const maxAttempts = 24;
+      for (let i = 0; i < maxAttempts; i++) {
       const attemptInfo: any = { attempt: i + 1 };
       try {
         const resp = await page.request.get(`${trimmedBase}/posts`);
@@ -88,8 +88,10 @@ test("API connectivity test", async ({ page }) => {
         attemptInfo.error = String(e.message || e);
         attempts.push(attemptInfo);
       }
-      // exponential backoff-ish (longer waits for CI)
-      await new Promise(res => setTimeout(res, 1200 * (i + 1)));
+      // exponential backoff-ish (longer waits for CI), capped at 5s per attempt
+      const waitMs = Math.min(5000, 1000 * (i + 1));
+      console.log(`API attempt ${i + 1} failed, sleeping ${waitMs}ms before retry`);
+      await new Promise(res => setTimeout(res, waitMs));
     }
 
     if (!(apiResponse && apiResponse.ok())) {
