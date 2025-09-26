@@ -53,8 +53,16 @@ jobs:
 
       - name: Start API (background)
         run: |
-          func host start --port 3100 &
-          sleep 10
+          # Start the Functions host bound to the IPv4 loopback and wait for readiness
+          func host start --port 3100 --host 127.0.0.1 &
+          # Poll the health endpoint until it's available (timeout ~40s)
+          for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20; do
+            if curl -sS http://127.0.0.1:3100/health >/dev/null 2>&1; then
+              echo "API is up"; break
+            fi
+            echo "Waiting for API... attempt $i"
+            sleep 2
+          done
         working-directory: src/api
         env:
           CI: true
@@ -70,7 +78,7 @@ jobs:
 
       - name: Start web server (background)
         run: |
-          npm run preview -- --port 3000 --host &
+          npm run preview -- --port 3000 --host 127.0.0.1 &
           sleep 5
         working-directory: src/web
 
@@ -78,8 +86,8 @@ jobs:
         run: npx playwright test
         working-directory: tests
         env:
-          REACT_APP_WEB_BASE_URL: http://localhost:3000
-          API_BASE_URL: http://localhost:3100
+          REACT_APP_WEB_BASE_URL: http://127.0.0.1:3000
+          API_BASE_URL: http://127.0.0.1:3100
 
       - name: Upload test results
         uses: actions/upload-artifact@v4

@@ -45,15 +45,22 @@ settings = Settings()
 # Global variable to track initialization
 _beanie_initialized = False
 
+def create_motor_client(conn_str: str):
+    """Create a Motor client that uses certifi CA bundle for TLS verification."""
+    import motor.motor_asyncio
+    import certifi
+    return motor.motor_asyncio.AsyncIOMotorClient(
+        conn_str,
+        tls=True,
+        tlsCAFile=certifi.where()
+    )
+
 async def ensure_beanie_initialized():
     """Ensure Beanie is initialized before any database operations"""
     global _beanie_initialized
     if not _beanie_initialized:
         print("Initializing Beanie...")
-        import motor.motor_asyncio
-        client = motor.motor_asyncio.AsyncIOMotorClient(
-            settings.AZURE_COSMOS_CONNECTION_STRING
-        )
+        client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
         
         # Test the connection
         await client.admin.command('ping')
@@ -87,8 +94,9 @@ if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
     exporter = AzureMonitorTraceExporter.from_connection_string(
         settings.APPLICATIONINSIGHTS_CONNECTION_STRING
     )
+    role_name = settings.APPLICATIONINSIGHTS_ROLENAME or "theglobe-api"
     tracerProvider = TracerProvider(
-        resource=Resource({SERVICE_NAME: settings.APPLICATIONINSIGHTS_ROLENAME})
+        resource=Resource({SERVICE_NAME: role_name})
     )
     tracerProvider.add_span_processor(BatchSpanProcessor(exporter))
 
@@ -104,29 +112,27 @@ async def db_status():
         print(f"Testing database connection...")
         print(f"Connection string set: {bool(settings.AZURE_COSMOS_CONNECTION_STRING)}")
         print(f"Database name: {settings.AZURE_COSMOS_DATABASE_NAME}")
-        
-        # Create a simple motor client to test connection
-        import motor.motor_asyncio
-        client = motor.motor_asyncio.AsyncIOMotorClient(settings.AZURE_COSMOS_CONNECTION_STRING)
-        
+
+        client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
+
         # Test connection with ping
         result = await client.admin.command('ping')
         print(f"Ping result: {result}")
-        
+
         # Try to list databases
         db_list = await client.list_database_names()
         print(f"Available databases: {db_list}")
-        
+
         # Check if our database exists
         db = client[settings.AZURE_COSMOS_DATABASE_NAME]
         collections = await db.list_collection_names()
         print(f"Collections in {settings.AZURE_COSMOS_DATABASE_NAME}: {collections}")
-        
+
         return {
-            "status": "connected", 
+            "status": "connected",
             "ping": result,
             "databases": db_list,
-            "collections": collections
+            "collections": collections,
         }
     except Exception as e:
         print(f"Database connection error: {str(e)}")
@@ -140,15 +146,12 @@ async def startup_event():
     print(f"Connection string set: {bool(settings.AZURE_COSMOS_CONNECTION_STRING)}")
     print(f"Database name: {settings.AZURE_COSMOS_DATABASE_NAME}")
     
-    import motor.motor_asyncio
-    client = motor.motor_asyncio.AsyncIOMotorClient(
-        settings.AZURE_COSMOS_CONNECTION_STRING
-    )
-    
+    client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
+
     # Test the connection
     await client.admin.command('ping')
     print("Successfully pinged MongoDB server")
-    
+
     database = client[settings.AZURE_COSMOS_DATABASE_NAME]
     print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
     

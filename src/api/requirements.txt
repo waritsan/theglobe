@@ -11,3 +11,4 @@ azure-monitor-opentelemetry-exporter == 1.0.0b19
 azure-ai-projects == 1.0.0b3
 openai == 1.108.*
 pydantic == 1.10.*
+certifi

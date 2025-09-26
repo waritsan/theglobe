@@ -2,8 +2,22 @@ import { test, expect } from "@playwright/test";
 
 test("Blog application loads and displays content", async ({ page }) => {
   try {
-    // Navigate to the blog application with a shorter wait condition
-    await page.goto("/", { waitUntil: 'domcontentloaded', timeout: 10000 });
+    // Navigate to the blog application (use env override so CI can point to preview)
+    const WEB_BASE = process.env.REACT_APP_WEB_BASE_URL || 'http://127.0.0.1:3000';
+    const webBaseTrim = WEB_BASE.replace(/\/$/, '');
+
+    // Wait for the web server to be ready (simple polling)
+    let webReady = false;
+    for (let i = 0; i < 10; i++) {
+      try {
+        const r = await page.request.get(webBaseTrim + '/');
+        if (r.ok()) { webReady = true; break; }
+      } catch (e) { /* ignore */ }
+      await new Promise(res => setTimeout(res, 500));
+    }
+    if (!webReady) throw new Error(`Web server not responding at ${webBaseTrim}`);
+
+    await page.goto(webBaseTrim, { waitUntil: 'domcontentloaded', timeout: 20000 });
     console.log("Page loaded successfully");
 
     // Wait a bit for React to hydrate and load content
@@ -42,10 +56,19 @@ test("Blog application loads and displays content", async ({ page }) => {
 test("API connectivity test", async ({ page }) => {
   try {
     // Test direct API access. Read target host from environment so CI can point to a local API
-    const API_BASE = process.env.API_BASE_URL || 'http://localhost:3100';
+    const API_BASE = process.env.API_BASE_URL || 'http://127.0.0.1:3100';
     const trimmedBase = API_BASE.replace(/\/$/, '');
-    const apiResponse = await page.request.get(`${trimmedBase}/posts`);
-    expect(apiResponse.ok()).toBe(true);
+
+    // Retry API request a few times to allow the API to finish warming up
+    let apiResponse = null;
+    for (let i = 0; i < 6; i++) {
+      try {
+        apiResponse = await page.request.get(`${trimmedBase}/posts`);
+        if (apiResponse && apiResponse.ok()) break;
+      } catch (e) { /* ignore */ }
+      await new Promise(res => setTimeout(res, 1000 * (i + 1)));
+    }
+    expect(apiResponse && apiResponse.ok()).toBe(true);
 
     const apiData = await apiResponse.json();
     console.log(`API returned ${Array.isArray(apiData) ? apiData.length : 'non-array'} items`);
