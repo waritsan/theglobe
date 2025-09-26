@@ -59,16 +59,39 @@ test("API connectivity test", async ({ page }) => {
     const API_BASE = process.env.API_BASE_URL || 'http://127.0.0.1:3100';
     const trimmedBase = API_BASE.replace(/\/$/, '');
 
-    // Retry API request a few times to allow the API to finish warming up
+    // Retry API request with diagnostics to allow the API to finish warming up
     let apiResponse = null;
-    for (let i = 0; i < 6; i++) {
+    const attempts: Array<any> = [];
+    const maxAttempts = 8;
+    for (let i = 0; i < maxAttempts; i++) {
+      const attemptInfo: any = { attempt: i + 1 };
       try {
-        apiResponse = await page.request.get(`${trimmedBase}/posts`);
-        if (apiResponse && apiResponse.ok()) break;
-      } catch (e) { /* ignore */ }
+        const resp = await page.request.get(`${trimmedBase}/posts`);
+        attemptInfo.status = resp.status();
+        // capture a short snippet of body for diagnostics (non-consuming for later JSON only if ok)
+        try {
+          const text = await resp.text();
+          attemptInfo.bodySnippet = text ? text.slice(0, 500) : null;
+        } catch (bodyErr) {
+          attemptInfo.bodySnippet = `body-read-error:${String(bodyErr)}`;
+        }
+        attempts.push(attemptInfo);
+        if (resp.ok()) {
+          apiResponse = resp;
+          break;
+        }
+      } catch (e: any) {
+        attemptInfo.error = String(e.message || e);
+        attempts.push(attemptInfo);
+      }
+      // exponential backoff-ish
       await new Promise(res => setTimeout(res, 1000 * (i + 1)));
     }
-    expect(apiResponse && apiResponse.ok()).toBe(true);
+
+    if (!(apiResponse && apiResponse.ok())) {
+      console.error('API connectivity attempts:', JSON.stringify(attempts, null, 2));
+      throw new Error(`API did not respond successfully after ${maxAttempts} attempts`);
+    }
 
     const apiData = await apiResponse.json();
     console.log(`API returned ${Array.isArray(apiData) ? apiData.length : 'non-array'} items`);
