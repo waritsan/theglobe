@@ -145,3 +145,56 @@ jobs:
           AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
           AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
           AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Grant function access to Key Vault (post-deploy)
+        run: |
+          set -euo pipefail
+          # Find the resource group deployed for this azd environment
+          RG=$(az group list --query "[?tags.'azd-env-name'=='${{ vars.AZURE_ENV_NAME }}'].name | [0]" -o tsv)
+          if [ -z "$RG" ]; then
+            RG=$(az group list --query "[?contains(name, '${{ vars.AZURE_ENV_NAME }}')].name | [0]" -o tsv)
+          fi
+
+          echo "Using resource group: $RG"
+
+          # Find the function app name tagged as the API service
+          FUNC_NAME=$(az resource list --resource-group "$RG" --resource-type "Microsoft.Web/sites" --query "[?tags.'azd-service-name'=='api'].[name] | [0]" -o tsv)
+          if [ -z "$FUNC_NAME" ]; then
+            echo "Function app not found in $RG"; exit 1
+          fi
+
+          # Try to find the key vault in the same resource group
+          KV_NAME=$(az keyvault list --resource-group "$RG" --query "[0].name" -o tsv)
+          if [ -z "$KV_NAME" ]; then
+            echo "Key Vault not found in $RG"; exit 1
+          fi
+
+          echo "Function: $FUNC_NAME, Key Vault: $KV_NAME"
+
+          PRINCIPAL_ID=$(az functionapp identity show --name "$FUNC_NAME" --resource-group "$RG" --query principalId -o tsv)
+          KV_ID=$(az keyvault show -n "$KV_NAME" --resource-group "$RG" --query id -o tsv)
+
+          echo "Assigning Key Vault Secrets User to principal $PRINCIPAL_ID on $KV_ID"
+          az role assignment create --assignee-object-id "$PRINCIPAL_ID" --role "Key Vault Secrets User" --scope "$KV_ID" || echo "role assignment may already exist"
+
+      - name: Wait for function warm and test DB connectivity
+        run: |
+          # Small wait to allow role assignment propagation and function warm-up
+          sleep 10
+          # determine deployed function host name
+          RG=$(az group list --query "[?tags.'azd-env-name'=='${{ vars.AZURE_ENV_NAME }}'].name | [0]" -o tsv)
+          FUNC_NAME=$(az resource list --resource-group "$RG" --resource-type "Microsoft.Web/sites" --query "[?tags.'azd-service-name'=='api'].[name] | [0]" -o tsv)
+          HOSTNAME=$(az functionapp show --name "$FUNC_NAME" --resource-group "$RG" --query defaultHostName -o tsv)
+          URL="https://$HOSTNAME/test-beanie"
+          echo "Testing $URL"
+          set +e
+          for i in 1 2 3; do
+            RESP=$(curl -sS "$URL" || true)
+            echo "$RESP"
+            echo "$RESP" | grep -q '"status":"success"' && exit 0
+            sleep 5
+          done
+          set -e
+          echo "Connectivity test failed"; exit 1
+        env:
+          AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}

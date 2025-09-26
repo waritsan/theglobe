@@ -117,6 +117,21 @@ module accessKeyVault 'br/public:avm/res/key-vault/vault:0.5.1' = {
   }
 }
 
+// Ensure the Function App's managed identity has access to read secrets from the
+// Key Vault. We create an RBAC role assignment for the built-in
+// 'Key Vault Secrets User' role (roleDefinitionId shown below). This is useful
+// when the Key Vault is configured to use RBAC authorization.
+resource apiKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = {
+  name: guid(keyVault.outputs.resourceId, api.outputs.SERVICE_API_IDENTITY_PRINCIPAL_ID, 'keyVaultSecretsUser')
+  scope: keyVault.outputs.resourceId
+  properties: {
+    // RoleDefinitionId for 'Key Vault Secrets User' at the subscription scope
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '4633458b-17de-408a-b874-0445c86b69e6')
+    principalId: api.outputs.SERVICE_API_IDENTITY_PRINCIPAL_ID
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // The application database
 module cosmos './app/db-avm.bicep' = {
   name: 'cosmos'
