@@ -46,6 +46,11 @@ param collections array = [
 var defaultDatabaseName = 'Blog'
 var actualDatabaseName = !empty(cosmosDatabaseName) ? cosmosDatabaseName : defaultDatabaseName
 
+// Enable Cosmos DB Free Tier and serverless capability by default. These can be
+// overridden when the module is called from higher-level templates.
+param enableFreeTier bool = true
+param enableServerless bool = true
+
 module cosmos 'br/public:avm/res/document-db/database-account:0.6.0' = {
   name: 'cosmos-mongo'
   params: {
@@ -65,6 +70,11 @@ module cosmos 'br/public:avm/res/document-db/database-account:0.6.0' = {
         collections: collections
       }
     ]
+    // Add serverless capability when requested. The AVM module accepts
+    // `capabilitiesToAdd` and `enableFreeTier` which map to ARM properties
+    // that enable serverless and free-tier features respectively.
+    capabilitiesToAdd: enableServerless ? [ 'EnableServerless' ] : []
+    enableFreeTier: enableFreeTier
     secretsExportConfiguration: {
       keyVaultResourceId: keyVaultResourceId
       primaryWriteConnectionStringSecretName: connectionStringKey

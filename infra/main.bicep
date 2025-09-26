@@ -34,6 +34,12 @@ param apimSku string = 'Consumption'
 @description('Id of the user or app to assign application roles')
 param principalId string = ''
 
+@description('App Service Plan SKU name. Set to EP1 to use Elastic Premium (Flex Consumption). Default is Y1 (Consumption).')
+param appServicePlanSkuName string = 'Y1'
+
+@description('App Service Plan SKU tier. Defaults to Dynamic for Consumption plans. Use ElasticPremium with EP1/EP2 when selecting Elastic Premium.')
+param appServicePlanSkuTier string = 'Dynamic'
+
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = toLower(uniqueString(subscription().id, environmentName, location))
 var tags = { 'azd-env-name': environmentName }
@@ -130,8 +136,8 @@ module appServicePlan 'br/public:avm/res/web/serverfarm:0.1.1' = {
   params: {
     name: !empty(appServicePlanName) ? appServicePlanName : '${abbrs.webServerFarms}${resourceToken}'
     sku: {
-      name: 'Y1'
-      tier: 'Dynamic'
+      name: appServicePlanSkuName
+      tier: appServicePlanSkuTier
     }
     location: location
     tags: tags
