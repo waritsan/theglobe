@@ -75,7 +75,7 @@ jobs:
         working-directory: src/api
         env:
           # Point the runtime at the local Mongo instance started above
-          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017"
+          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017/?tls=false"
 
       - name: Start API (background)
         run: |
@@ -117,7 +117,7 @@ jobs:
           # Ensure the Functions host starts non-interactively with the Python worker
           FUNCTIONS_WORKER_RUNTIME: python
           # Ensure the function uses the test mongo instance
-          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017"
+          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017/?tls=false"
 
       - name: Install web dependencies
         run: npm install
