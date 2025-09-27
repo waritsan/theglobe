@@ -6,6 +6,11 @@ on:
     branches:
       - main
       - master
+  # Also run on pull requests so CI can be triggered from feature branches for debugging
+  pull_request:
+    branches:
+      - main
+      - master
 
 # GitHub Actions workflow to deploy to Azure using azd
 # To configure required secrets for connecting to Azure, simply run `azd pipeline config`
@@ -20,6 +25,22 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: Start MongoDB for CI
+        run: |
+          docker run -d --name theglobe-mongo -p 27017:27017 mongo:6.0 --bind_ip_all
+          # Wait for mongod to accept connections
+          for i in $(seq 1 20); do
+            if docker exec theglobe-mongo mongosh --quiet --eval "db.adminCommand('ping')" >/dev/null 2>&1; then
+              echo "Mongo is up"; break
+            fi
+            sleep 1
+          done
+
+      - name: Seed Mongo with a sample post
+        run: |
+          # Create the Blog database and a sample post document
+          docker exec theglobe-mongo mongosh --eval "use Blog; db.BlogPost.insertOne({title:'CI seed', content:'seeded content', createdAt: new Date()})"
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -52,6 +73,9 @@ jobs:
       - name: Install API dependencies
         run: pip install -r requirements.txt
         working-directory: src/api
+        env:
+          # Point the runtime at the local Mongo instance started above
+          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017"
 
       - name: Start API (background)
         run: |
@@ -92,6 +116,8 @@ jobs:
           API_ENVIRONMENT: develop
           # Ensure the Functions host starts non-interactively with the Python worker
           FUNCTIONS_WORKER_RUNTIME: python
+          # Ensure the function uses the test mongo instance
+          AZURE_COSMOS_CONNECTION_STRING: "mongodb://localhost:27017"
 
       - name: Install web dependencies
         run: npm install
