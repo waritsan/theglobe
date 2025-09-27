@@ -46,14 +46,35 @@ settings = Settings()
 _beanie_initialized = False
 
 def create_motor_client(conn_str: str):
-    """Create a Motor client that uses certifi CA bundle for TLS verification."""
+    """Create a Motor client. Enable TLS when requested in the connection string.
+
+    The connection string can include `tls=false` (or `ssl=false`) for local
+    non-TLS MongoDB instances (useful in CI). When TLS is enabled, the certifi
+    CA bundle is used for verification.
+    """
     import motor.motor_asyncio
     import certifi
-    return motor.motor_asyncio.AsyncIOMotorClient(
-        conn_str,
-        tls=True,
-        tlsCAFile=certifi.where()
-    )
+
+    # Default to using TLS. If the connection string explicitly disables TLS
+    # (e.g. `mongodb://localhost:27017/?tls=false`) then turn it off so a
+    # local, non-TLS mongod can be used in CI.
+    use_tls = True
+    if conn_str:
+        low = conn_str.lower()
+        if 'tls=false' in low or 'ssl=false' in low:
+            use_tls = False
+
+    if use_tls:
+        return motor.motor_asyncio.AsyncIOMotorClient(
+            conn_str,
+            tls=True,
+            tlsCAFile=certifi.where()
+        )
+    else:
+        return motor.motor_asyncio.AsyncIOMotorClient(
+            conn_str,
+            tls=False
+        )
 
 async def ensure_beanie_initialized():
     """Ensure Beanie is initialized before any database operations"""
