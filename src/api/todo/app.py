@@ -92,3 +92,16 @@ if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
 
 
 from . import routes  # NOQA
+
+# Provide an explicit startup initializer for hosts that may not emit lifespan events (e.g., Azure Functions ASGI wrapper)
+async def startup_event():
+    # Idempotent init: only initialize once
+    if getattr(app.state, "mongo_client", None) is None:
+        client = motor.motor_asyncio.AsyncIOMotorClient(
+            settings.AZURE_COSMOS_CONNECTION_STRING
+        )
+        await init_beanie(
+            database=client[settings.AZURE_COSMOS_DATABASE_NAME],
+            document_models=__beanie_models__,
+        )
+        app.state.mongo_client = client
