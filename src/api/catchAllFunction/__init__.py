@@ -37,12 +37,23 @@ async def handle_asgi_request(req: func.HttpRequest, context: func.Context) -> f
     return asgi_response.to_func_response()
 
 async def main(req: func.HttpRequest, context: func.Context) -> func.HttpResponse:
-    try:
-        await ensure_init()
-    except Exception:
-        return func.HttpResponse(
-            status_code=500,
-            body=b"Initialization failed. Check application logs for details.",
-            mimetype="text/plain",
-        )
+    # Determine the request path from route params or URL
+    route_param = req.route_params.get('route') if hasattr(req, 'route_params') else None
+    path = route_param or '/'
+    if not path.startswith('/'):
+        path = f'/{path}'
+
+    # Allow health and docs to work without forcing DB init
+    skip_init = path == '/health' or path == '/' or path.startswith('/docs') or path.startswith('/openapi') or path.startswith('/static')
+
+    if not skip_init:
+        try:
+            await ensure_init()
+        except Exception:
+            return func.HttpResponse(
+                status_code=500,
+                body=b"Initialization failed. Check application logs for details.",
+                mimetype="text/plain",
+            )
+
     return await handle_asgi_request(req, context)
