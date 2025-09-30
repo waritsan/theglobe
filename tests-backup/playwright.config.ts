@@ -10,7 +10,7 @@ import dotenv from "dotenv";
 const config: PlaywrightTestConfig = {
   testDir: ".",
   /* Maximum time one test can run for. Using 2 hours per test */
-  timeout: 30000,
+  timeout: 2 * 60 * 60 * 1000,
   expect: {
     /**
      * Maximum time expect() should wait for the condition to be met.
@@ -49,17 +49,34 @@ const config: PlaywrightTestConfig = {
 };
 
 function getBaseURL() {
-  // Always default to Vite dev server on 127.0.0.1:5173 for local development
-  // Only use REACT_APP_WEB_BASE_URL or TEST_PRODUCTION for CI/production
-  if (process.env.TEST_PRODUCTION === 'true') {
-    console.log("⚠️  WARNING: Running tests against PRODUCTION environment!");
-    return process.env.REACT_APP_WEB_BASE_URL || "https://zealous-tree-02461c100.1.azurestaticapps.net";
+  // If we don't have URL and aren't in CI, then try to load from environment
+  if (!process.env.REACT_APP_WEB_BASE_URL && !process.env.CI) {
+    // Try to get env in .azure folder
+    let environment = process.env.AZURE_ENV_NAME;
+    if (!environment) {
+      // Couldn't find env name in env var, let's try to load from .azure folder
+      try {
+        let configfilePath = join(__dirname, "..", ".azure", "config.json");
+        if (fs.existsSync(configfilePath)) {
+          let configFile = JSON.parse(fs.readFileSync(configfilePath, "utf-8"));
+          environment = configFile["defaultEnvironment"];
+        }
+      } catch (err) {
+        console.log("Unable to load default environment: " + err);
+      }
+    }
+
+    if (environment) {
+      let envPath = join(__dirname, "..", ".azure", environment, ".env");
+      console.log("Loading env from: " + envPath);
+      dotenv.config({ path: envPath });
+      return process.env.REACT_APP_WEB_BASE_URL;
+    }
   }
-  if (process.env.CI) {
-    return process.env.REACT_APP_WEB_BASE_URL || "http://localhost:3000";
-  }
-  // Local dev: always use 127.0.0.1:5173
-  return "http://127.0.0.1:5173";
+
+  let baseURL = process.env.REACT_APP_WEB_BASE_URL || "http://localhost:3000";
+  console.log("baseUrl: " + baseURL);
+  return baseURL;
 }
 
 export default config;
