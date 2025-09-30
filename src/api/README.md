@@ -43,5 +43,5 @@ The tests can be run from the command line, or the launch profile in VS Code
 
 ```bash
 $ pip install -r requirements-test.txt
-$ AZURE_COSMOS_DATABASE_NAME=test_db python -m pytest tests/
+$ AZURE_COSMOS_DATABASE_NAME=test_db python3 -m pytest tests/
 ```
