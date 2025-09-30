@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from http import HTTPStatus
 from typing import List, Optional
 from urllib.parse import urljoin
@@ -66,7 +66,7 @@ async def create_category(body: CreateUpdateCategory, request: Request, response
     """
     Create a new category
     """
-    category = await Category(**body.dict(), createdDate=datetime.utcnow()).save()
+    category = await Category(**body.dict(), createdDate=datetime.now(UTC)).save()
     response.headers["Location"] = urljoin(str(request.base_url), f"categories/{category.id}")
     return category
 
@@ -93,7 +93,7 @@ async def update_category(
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     await category.update({"$set": body.dict(exclude_unset=True)})
-    category.updatedDate = datetime.utcnow()
+    category.updatedDate = datetime.now(UTC)
     return await category.save()
 
 
@@ -147,9 +147,9 @@ async def create_post(body: CreateUpdateBlogPost, request: Request, response: Re
     """
     post_data = body.dict()
     if body.published and not body.publishedDate:
-        post_data["publishedDate"] = datetime.utcnow()
+        post_data["publishedDate"] = datetime.now(UTC)
 
-    post = await BlogPost(**post_data, createdDate=datetime.utcnow()).save()
+    post = await BlogPost(**post_data, createdDate=datetime.now(UTC)).save()
     response.headers["Location"] = urljoin(str(request.base_url), f"posts/{post.id}")
     return post
 
@@ -178,10 +178,10 @@ async def update_post(
 
     update_data = body.dict(exclude_unset=True)
     if body.published and not post.publishedDate:
-        update_data["publishedDate"] = datetime.utcnow()
+        update_data["publishedDate"] = datetime.now(UTC)
 
     await post.update({"$set": update_data})
-    post.updatedDate = datetime.utcnow()
+    post.updatedDate = datetime.now(UTC)
     return await post.save()
 
 
@@ -234,7 +234,7 @@ async def create_comment(
     comment = await Comment(
         postId=post_id,
         **body.dict(),
-        createdDate=datetime.utcnow()
+        createdDate=datetime.now(UTC)
     ).save()
     response.headers["Location"] = urljoin(str(request.base_url), f"posts/{post_id}/comments/{comment.id}")
     return comment
@@ -257,7 +257,7 @@ async def update_comment(
         raise HTTPException(status_code=404, detail="Comment not found")
 
     await comment.update({"$set": body.dict(exclude_unset=True)})
-    comment.updatedDate = datetime.utcnow()
+    comment.updatedDate = datetime.now(UTC)
     return await comment.save()
 
 
