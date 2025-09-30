@@ -14,7 +14,7 @@ To run the tests:
 
 1. CD to /tests
 1. Run `npm i && npx playwright install`
-1. Run `npx playwright test`
+1. Run `REACT_APP_WEB_BASE_URL=http://localhost:5173 npx playwright test --timeout=60000`
 
 You can use the `--headed` flag to open a browser when running the tests.
 
