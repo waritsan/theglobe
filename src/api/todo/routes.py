@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from http import HTTPStatus
 from typing import List, Optional
 from urllib.parse import urljoin
@@ -33,7 +33,7 @@ async def create_list(body: CreateUpdateTodoList, request: Request, response: Re
     """
     Create a new Todo list
     """
-    todo_list = await TodoList(**body.dict(), createdDate=datetime.utcnow()).save()
+    todo_list = await TodoList(**body.dict(), createdDate=datetime.now(UTC)).save()
     response.headers["Location"] = urljoin(str(request.base_url), "lists/{0}".format(str(todo_list.id)))
     return todo_list
 
@@ -60,7 +60,7 @@ async def update_list(
     if not todo_list:
         raise HTTPException(status_code=404, detail="Todo list not found")
     await todo_list.update({"$set": body.dict(exclude_unset=True)})
-    todo_list.updatedDate = datetime.utcnow()
+    todo_list.updatedDate = datetime.now(UTC)
     return await todo_list.save()
 
 
@@ -82,7 +82,7 @@ async def create_list_item(
     """
     Creates a new Todo item within a list
     """
-    item = TodoItem(listId=list_id, **body.dict(), createdDate=datetime.utcnow())
+    item = TodoItem(listId=list_id, **body.dict(), createdDate=datetime.now(UTC))
     response.headers["Location"] = urljoin(str(request.base_url), "lists/{0}/items/{1}".format(str(list_id), str(item.id)))
     return await item.save()
 
@@ -145,7 +145,7 @@ async def update_list_items_state(
         if not item:
             raise HTTPException(status_code=404, detail="Todo item not found")
         item.state = state
-        item.updatedDate = datetime.utcnow()
+        item.updatedDate = datetime.now(UTC)
         results.append(await item.save())
     return results
 
@@ -176,7 +176,7 @@ async def update_list_item(
     if not item:
         raise HTTPException(status_code=404, detail="Todo item not found")
     await item.update({"$set": body.dict(exclude_unset=True)})
-    item.updatedDate = datetime.utcnow()
+    item.updatedDate = datetime.now(UTC)
     return await item.save()
 
 

@@ -10,6 +10,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from contextlib import asynccontextmanager
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,11 +46,30 @@ def originList():
 from .models import Settings, __beanie_models__
 
 settings = Settings()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Initialize DB (Beanie + Motor) on startup and close the client on shutdown
+    client = motor.motor_asyncio.AsyncIOMotorClient(
+        settings.AZURE_COSMOS_CONNECTION_STRING
+    )
+    await init_beanie(
+        database=client[settings.AZURE_COSMOS_DATABASE_NAME],
+        document_models=__beanie_models__,
+    )
+    # Optionally store client for future use
+    app.state.mongo_client = client
+    try:
+        yield
+    finally:
+        client.close()
+
 app = FastAPI(
     description="Simple Todo API",
     version="2.0.0",
     title="Simple Todo API",
     docs_url="/",
+    lifespan=lifespan,
 )
 app.add_middleware(
     CORSMiddleware,
@@ -72,13 +92,3 @@ if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
 
 
 from . import routes  # NOQA
-
-@app.on_event("startup")
-async def startup_event():
-    client = motor.motor_asyncio.AsyncIOMotorClient(
-        settings.AZURE_COSMOS_CONNECTION_STRING
-    )
-    await init_beanie(
-        database=client[settings.AZURE_COSMOS_DATABASE_NAME],
-        document_models=__beanie_models__,
-    )

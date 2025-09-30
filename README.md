@@ -40,6 +40,22 @@ The following prerequisites are required to use this application. Please ensure 
 - [Azure Functions Core Tools (4+)](https://docs.microsoft.com/azure/azure-functions/functions-run-local)
 - [Python (3.10+)](https://www.python.org/downloads/) - for the API backend
 
+### Run Local
+```bash
+# Start API
+cd src/api
+uvicorn todo.app:app --port 3100 --reload
+# Start Web
+cd src/web/
+npm run dev
+# Run smoke test
+cd tests
+npx playwright test
+# Run API test
+cd src/api
+AZURE_COSMOS_DATABASE_NAME=test_db python3 -m pytest tests/ -q
+```
+
 ### Quickstart
 To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-python) with this template(`Azure-Samples/todo-python-mongo-swa-func`).
 
