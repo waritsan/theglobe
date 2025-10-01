@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "todo"
+name = "theglobe-blog"
 version = "0.1.0"
-description = "Simple Todo API"
+description = "The Globe Blog API"
 license = "MIT"
 packages = [
-    { include = "todo" },
+    { include = "blog" },
 ]
 
 [tool.poetry.dependencies]

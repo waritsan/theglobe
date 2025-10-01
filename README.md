@@ -12,24 +12,24 @@ products:
 - azure-functions
 - azure-monitor
 - azure-pipelines
-urlFragment: todo-python-mongo-swa-func
-name: Static React Web App + Functions with Python API and MongoDB on Azure
-description: A complete ToDo app with Python FastAPI and Azure Cosmos API for MongoDB for storage. Uses Azure Developer CLI (azd) to build, deploy, and monitor
+urlFragment: theglobe-blog-fastapi-swa-func
+name: The Globe – Static React Web App + Azure Functions (FastAPI) + Cosmos MongoDB
+description: A simple blog (The Globe) with a React frontend, a Python FastAPI backend hosted on Azure Functions, and Azure Cosmos DB for MongoDB as storage. Uses Azure Developer CLI (azd) to build, deploy, and monitor.
 ---
 <!-- YAML front-matter schema: https://review.learn.microsoft.com/en-us/help/contribute/samples/process/onboarding?branch=main#supported-metadata-fields-for-readmemd -->
 
-# Static React Web App + Functions with Python API and MongoDB on Azure
+# The Globe – Static React Web App + Functions with Python API and MongoDB on Azure
 
-[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://codespaces.new/azure-samples/todo-python-mongo-swa-func)
-[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/azure-samples/todo-python-mongo-swa-func)
+[![Open in GitHub Codespaces](https://img.shields.io/static/v1?style=for-the-badge&label=GitHub+Codespaces&message=Open&color=brightgreen&logo=github)](https://codespaces.new)
+[![Open in Dev Container](https://img.shields.io/static/v1?style=for-the-badge&label=Dev+Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/)
 
-A blueprint for getting a React web app with Python (FastAPI) API and a MongoDB database running on Azure. The frontend, currently a ToDo application, is designed as a placeholder that can easily be removed and replaced with your own frontend code. This architecture is for hosting static web apps with serverless logic and functionality.
+A blueprint for getting a React web app with Python (FastAPI) API and a MongoDB database running on Azure. The frontend implements a simple blog UI, backed by the Blog API. This architecture is for hosting static web apps with serverless logic and functionality.
 
 Let's jump in and get this up and running in Azure. When you are finished, you will have a fully functional web app deployed to the cloud. In later steps, you'll see how to setup a pipeline and monitor the application.
 
-!["Screenshot of deployed ToDo app"](assets/web.png)
+!["Screenshot of deployed app"](assets/web.png)
 
-<sup>Screenshot of the deployed ToDo app</sup>
+<sup>Screenshot of the deployed app</sup>
 
 ### Prerequisites
 > This template will create infrastructure and deploy code to Azure. If you don't have an Azure Subscription, you can sign up for a [free account here](https://azure.microsoft.com/free/). Make sure you have contributor role to the Azure subscription.
@@ -42,9 +42,9 @@ The following prerequisites are required to use this application. Please ensure 
 
 ### Run Local
 ```bash
-# Start API
+# Start API (Blog)
 cd src/api
-uvicorn todo.app:app --port 3100 --reload
+uvicorn blog.app:app --port 3100 --reload
 # Start Web
 cd src/web/
 npm run dev
@@ -53,20 +53,18 @@ cd tests
 npx playwright test
 # Run API test
 cd src/api
-AZURE_COSMOS_DATABASE_NAME=test_db python3 -m pytest tests/ -q
+python3 -m pytest tests/ -q
 ```
 
 ### Quickstart
-To learn how to get started with any template, follow the steps in [this quickstart](https://learn.microsoft.com/azure/developer/azure-developer-cli/get-started?tabs=localinstall&pivots=programming-language-python) with this template(`Azure-Samples/todo-python-mongo-swa-func`).
-
-This quickstart will show you how to authenticate on Azure, initialize using a template, provision infrastructure and deploy code on Azure via the following commands:
+To get started with Azure Developer CLI in this repo:
 
 ```bash
-# Log in to azd. Only required once per-install.
+# Log in to azd (one time)
 azd auth login
 
-# First-time project setup. Initialize a project in the current directory, using this template. 
-azd init --template Azure-Samples/todo-python-mongo-swa-func
+# Initialize the project (uses the local azd configuration in azure.yaml)
+azd init
 
 # Provision and deploy to Azure
 azd up

@@ -22,7 +22,7 @@
             "module": "uvicorn",
             "cwd": "${workspaceFolder}/src/api",
             "args": [
-                "todo.app:app",
+                "blog.app:app",
                 "--port", "3100",
                 "--reload"
             ],

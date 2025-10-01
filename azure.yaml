@@ -1,8 +1,8 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: todo-python-mongo-swa-func
+name: theglobe-blog-fastapi-swa-func
 metadata:
-  template: todo-python-mongo-swa-func@0.0.1-beta
+  template: theglobe-blog-fastapi-swa-func@0.1.0
 workflows:
   up: 
     steps:
