@@ -31,7 +31,7 @@ param aiAssignIdentity bool = true
 @allowed([ 'Enabled', 'Disabled' ])
 param publicNetworkAccess string = 'Enabled'
 
-resource aiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+resource aiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   name: aiAccountName
   kind: aiAccountKind
   location: location
@@ -44,6 +44,8 @@ resource aiAccount 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   }
   properties: {
     publicNetworkAccess: publicNetworkAccess
+    allowProjectManagement: true 
+    customSubDomainName: aiAccountName
   }
 }
 
@@ -51,6 +53,10 @@ resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = 
   name: aiProjectName
   parent: aiAccount
   tags: tags
+  location: location
+  identity: {
+    type: aiAssignIdentity ? 'SystemAssigned' : 'None'
+  }
   properties: {
     displayName: aiProjectDisplayName
     description: aiProjectDescription
