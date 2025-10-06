@@ -303,3 +303,4 @@ output AI_FOUNDRY_ACCOUNT_ID string = aiFoundry.outputs.aiAccountId
 output AI_FOUNDRY_ACCOUNT_ENDPOINT string = aiFoundry.outputs.aiAccountEndpoint
 output AI_FOUNDRY_PROJECT_ID string = aiFoundry.outputs.aiProjectId
 output AI_FOUNDRY_PROJECT_NAME string = aiFoundry.outputs.aiProjectName
+output AI_FOUNDRY_DEPLOYMENT_MODEL_NAME string = aiFoundry.outputs.aiDeploymentModelName
