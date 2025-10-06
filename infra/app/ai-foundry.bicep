@@ -24,6 +24,9 @@ param aiProjectDescription string = 'AI Foundry project for The Globe applicatio
 @description('Cognitive Services account kind. Use AIServices for Azure AI Foundry projects, or OpenAI for Azure OpenAI accounts')
 param aiAccountKind string = 'AIServices'
 
+@description('Cognitive Services account SKU name (e.g., S0, S1, etc.)')
+param aiAccountSkuName string = 'S0'
+
 @description('Assign a system-assigned managed identity to the Cognitive Services account')
 param aiAssignIdentity bool = true
 
