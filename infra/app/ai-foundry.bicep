@@ -6,6 +6,9 @@ param aiAccountName string
 @description('Deployment location')
 param location string
 
+@description('Enable deployment of AI Foundry resources')
+param enabled bool = true
+
 @description('Resource tags')
 param tags object = {}
 
@@ -31,7 +34,7 @@ param aiAssignIdentity bool = true
 @allowed([ 'Enabled', 'Disabled' ])
 param publicNetworkAccess string = 'Enabled'
 
-resource aiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
+resource aiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = if (enabled) {
   name: aiAccountName
   kind: aiAccountKind
   location: location
@@ -49,7 +52,7 @@ resource aiAccount 'Microsoft.CognitiveServices/accounts@2025-06-01' = {
   }
 }
 
-resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = {
+resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = if (enabled) {
   name: aiProjectName
   parent: aiAccount
   tags: tags
@@ -63,8 +66,9 @@ resource aiProject 'Microsoft.CognitiveServices/accounts/projects@2025-06-01' = 
   }
 }
 
-output aiAccountName string = aiAccount.name
-output aiAccountId string = aiAccount.id
-output aiAccountEndpoint string = aiAccount.properties.endpoint
-output aiProjectId string = aiProject.id
-output aiProjectName string = aiProject.name
+output aiAccountName string = enabled ? aiAccount.name : ''
+output aiAccountId string = enabled ? aiAccount.id : ''
+// Construct endpoint from account name to avoid dereferencing the resource properties during compilation
+output aiAccountEndpoint string = enabled ? 'https://${aiAccountName}.cognitiveservices.azure.com' : ''
+output aiProjectId string = enabled ? aiProject.id : ''
+output aiProjectName string = enabled ? aiProject.name : ''
