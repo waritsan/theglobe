@@ -206,10 +206,11 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.5.1' = {
 }
 
 // Azure AI Foundry resources (Cognitive Services account + Project)
-module aiFoundry './app/ai-foundry.bicep' = if (deployAIFoundry) {
+module aiFoundry './app/ai-foundry.bicep' = {
   name: 'ai-foundry'
   scope: rg
   params: {
+    enabled: deployAIFoundry
     aiAccountName: !empty(aiAccountName) ? aiAccountName : '${abbrs.cognitiveServicesAccounts}${resourceToken}'
     aiProjectName: !empty(aiProjectName) ? aiProjectName : 'aiproj-${resourceToken}'
     location: location
@@ -297,3 +298,8 @@ output USE_APIM bool = useAPIM
 output SERVICE_API_ENDPOINTS array = []
 
 // Azure AI Foundry outputs
+output AI_FOUNDRY_ACCOUNT_NAME string = aiFoundry.outputs.aiAccountName
+output AI_FOUNDRY_ACCOUNT_ID string = aiFoundry.outputs.aiAccountId
+output AI_FOUNDRY_ACCOUNT_ENDPOINT string = aiFoundry.outputs.aiAccountEndpoint
+output AI_FOUNDRY_PROJECT_ID string = aiFoundry.outputs.aiProjectId
+output AI_FOUNDRY_PROJECT_NAME string = aiFoundry.outputs.aiProjectName
