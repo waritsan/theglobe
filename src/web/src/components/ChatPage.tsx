@@ -65,7 +65,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
         const parsedMessages = JSON.parse(savedMessages)
         // Only load if there are actual conversation messages (more than just welcome)
         if (parsedMessages.length > 1) {
-          setMessages(parsedMessages)
+          // Normalize timestamps (they are serialized as strings in localStorage)
+          const normalized = parsedMessages.map((m: any) => ({
+            ...m,
+            timestamp: m.timestamp ? new Date(m.timestamp) : new Date()
+          }))
+          setMessages(normalized)
         }
       } catch (error) {
         console.error('Failed to parse saved messages:', error)
@@ -285,7 +290,9 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
                     ? 'text-blue-100'
                     : 'text-gray-500 dark:text-gray-400'
                 }`}>
-                  {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {(
+                    (message.timestamp instanceof Date) ? message.timestamp : new Date(message.timestamp)
+                  ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
             </div>
