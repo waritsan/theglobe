@@ -306,4 +306,33 @@ async def chat_endpoint(request: ChatRequest):
         result = await chat_with_agent(request.message, request.conversation_history, request.conversation_id)
         return ChatResponse(response=result["response"], conversation_id=result["conversation_id"])
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Chat error: {str(e)}")
+        import ast
+        import re
+
+        # Try to parse an embedded dict in the exception text (e.g. "Agent run failed: {'code': 'rate_limit_exceeded', 'message': '...'}")
+        text = str(e)
+        parsed = None
+        try:
+            # Find the first {...} substring and parse it as a Python literal
+            m = re.search(r"\{.*\}", text)
+            if m:
+                parsed = ast.literal_eval(m.group(0))
+        except Exception:
+            parsed = None
+
+        # If structured error indicates rate limiting, return 429 with Retry-After
+        if isinstance(parsed, dict) and parsed.get('code') == 'rate_limit_exceeded':
+            # Try to extract suggested seconds from message, fallback to 60
+            msg_text = str(parsed.get('message', ''))
+            sec_match = re.search(r"(\d+)\s*second", msg_text)
+            retry_after = int(sec_match.group(1)) if sec_match else 60
+            raise HTTPException(status_code=429, detail=msg_text or f"Rate limit exceeded. Try again in {retry_after} seconds.", headers={"Retry-After": str(retry_after)})
+
+        # Fallback: simple string match for rate limit
+        low = text.lower()
+        if 'rate_limit_exceeded' in low or 'rate limit' in low:
+            retry_after = 60
+            raise HTTPException(status_code=429, detail=f"Rate limit exceeded. Try again in {retry_after} seconds.", headers={"Retry-After": str(retry_after)})
+
+        # Otherwise return generic 500 with original message
+        raise HTTPException(status_code=500, detail=f"Chat error: {text}")

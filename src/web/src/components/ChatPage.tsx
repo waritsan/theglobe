@@ -28,6 +28,8 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
   const [inputValue, setInputValue] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const [conversationId, setConversationId] = useState<string>('')
+  const [retryUntil, setRetryUntil] = useState<number | null>(null)
+  const [retrySecondsLeft, setRetrySecondsLeft] = useState<number>(0)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -128,6 +130,38 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
       })
 
       if (!response.ok) {
+        if (response.status === 429) {
+          // Try to get Retry-After header (seconds) or parse body
+          const ra = response.headers.get('Retry-After')
+          let retrySec = 60
+          if (ra) {
+            const asNum = parseInt(ra, 10)
+            if (!isNaN(asNum)) retrySec = asNum
+          } else {
+            try {
+              const body = await response.json()
+              const m = (body?.detail || '').match(/(\d+)\s*second/)
+              if (m) retrySec = parseInt(m[1], 10)
+            } catch (e) {
+              // ignore
+            }
+          }
+
+          const until = Date.now() + retrySec * 1000
+          setRetryUntil(until)
+          setRetrySecondsLeft(retrySec)
+
+          const errorMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            text: `Rate limit exceeded. Try again in ${retrySec} seconds.`,
+            sender: 'ai',
+            timestamp: new Date()
+          }
+          setMessages(prev => [...prev, errorMessage])
+          setIsTyping(false)
+          return
+        }
+
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
@@ -168,6 +202,23 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
     }
   }
 
+  // Countdown effect for retry
+  useEffect(() => {
+    if (!retryUntil) {
+      setRetrySecondsLeft(0)
+      return
+    }
+    const tick = () => {
+      const secs = Math.max(0, Math.ceil((retryUntil - Date.now()) / 1000))
+      setRetrySecondsLeft(secs)
+      if (secs <= 0) setRetryUntil(null)
+    }
+
+    tick()
+    const id = setInterval(tick, 1000)
+    return () => clearInterval(id)
+  }, [retryUntil])
+
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Header */}
@@ -200,6 +251,12 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
 
       {/* Chat Container */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 h-[600px] flex flex-col">
+        {/* Retry banner when rate-limited */}
+        {retryUntil && (
+          <div className="bg-yellow-100 dark:bg-yellow-900 text-yellow-900 dark:text-yellow-200 px-4 py-2 rounded-t-lg">
+            Rate limit in effect. Please wait {retrySecondsLeft} second{retrySecondsLeft === 1 ? '' : 's'} before sending more messages.
+          </div>
+        )}
         {/* Messages Area */}
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((message) => (
@@ -260,12 +317,13 @@ const ChatPage: React.FC<ChatPageProps> = ({ onBack }) => {
               onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={handleKeyPress}
               placeholder={t('chat.placeholder')}
+              disabled={isTyping || !!retryUntil}
               className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
-              disabled={isTyping}
+              
             />
             <button
               onClick={handleSendMessage}
-              disabled={!inputValue.trim() || isTyping}
+              disabled={!inputValue.trim() || isTyping || !!retryUntil}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
