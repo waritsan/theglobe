@@ -50,13 +50,24 @@ def _build_credential():
 
 cred = _build_credential()
 
-# Create project client
+# Create project client.
+# Prefer a project-scoped endpoint when a project name is available; some SDK calls expect
+# the endpoint to include the /api/projects/{projectName} path, otherwise requests can return 404.
+project_endpoint = None
+if project_name:
+    project_endpoint = endpoint.rstrip("/") + f"/api/projects/{project_name}"
 try:
-    client = AIProjectClient(credential=cred, endpoint=endpoint)
+    client = AIProjectClient(credential=cred, endpoint=project_endpoint or endpoint)
 except Exception as e:
-    # SDK variations
+    # SDK variations / fallbacks
     base_endpoint = endpoint.split("/api/projects/")[0] if "/api/projects/" in endpoint else endpoint
-    client = AIProjectClient(credential=cred, endpoint=base_endpoint, subscription_id=subscription_id, resource_group_name=resource_group, project_name=project_name)
+    client = AIProjectClient(
+        credential=cred,
+        endpoint=project_endpoint or base_endpoint,
+        subscription_id=subscription_id,
+        resource_group_name=resource_group,
+        project_name=project_name,
+    )
 
 # Try to load existing agent id from keyvault if available
 agent_id = None
@@ -92,8 +103,19 @@ if not agent_id:
         except Exception as ex:
             log.warning("Failed to persist agent id to Key Vault: %s", ex)
 
-# Write to local env file used by azd (if exists), fallback to .azure/dev/.env
-env_path = os.getenv("AZD_ENV_FILE") or os.path.join(os.getcwd(), ".azure", "dev", ".env")
+# Write to local env file used by azd. Prefer the repository root .azure/dev/.env when possible.
+# If AZD_ENV_FILE is provided, honor it. Otherwise attempt to discover the git repo root
+# so we write to <repo>/.azure/dev/.env. Fall back to the current working directory when git
+# isn't available (this was the previous behavior).
+env_path = os.getenv("AZD_ENV_FILE")
+if not env_path:
+    try:
+        import subprocess
+
+        repo_root = subprocess.check_output(["git", "rev-parse", "--show-toplevel"]).decode().strip()
+        env_path = os.path.join(repo_root, ".azure", "dev", ".env")
+    except Exception:
+        env_path = os.path.join(os.getcwd(), ".azure", "dev", ".env")
 try:
     # Ensure directory
     os.makedirs(os.path.dirname(env_path), exist_ok=True)
