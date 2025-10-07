@@ -83,38 +83,89 @@ def create_motor_client(conn_str: str):
         if 'tls=false' in low or 'ssl=false' in low:
             use_tls = False
 
+    # Decide whether to set directConnection based on the connection string
+    direct_conn = None
+    if conn_str:
+        lowcs = conn_str.lower()
+        if 'directconnection=true' in lowcs:
+            direct_conn = True
+        elif 'directconnection=false' in lowcs:
+            direct_conn = False
+
+    # Build common kwargs and only include directConnection if explicitly requested
+    common_kwargs = {
+        'connectTimeoutMS': 20000,
+        'serverSelectionTimeoutMS': 30000,
+    }
+    if direct_conn is not None:
+        common_kwargs['directConnection'] = direct_conn
+
     if use_tls:
+        # When using TLS, provide the certifi CA bundle and sensible timeouts.
         return motor.motor_asyncio.AsyncIOMotorClient(
             conn_str,
             tls=True,
-            tlsCAFile=certifi.where()
+            tlsCAFile=certifi.where(),
+            **common_kwargs,
         )
     else:
         return motor.motor_asyncio.AsyncIOMotorClient(
             conn_str,
-            tls=False
+            tls=False,
+            **common_kwargs,
         )
+
+
+def test_sync_connection(conn_str: str, timeout_ms: int = 10000):
+    """Quick synchronous connectivity test using pymongo.MongoClient.
+
+    Motor/Mongo async pings sometimes fail in environments where a
+    synchronous server_info() succeeds. Use this lightweight check to
+    decide whether to attempt full async initialization.
+    """
+    try:
+        from pymongo import MongoClient
+        import certifi
+    except Exception:
+        # If pymongo isn't available, fall back to raising so callers know
+        raise
+
+    client = MongoClient(
+        conn_str,
+        tls=True,
+        tlsCAFile=certifi.where(),
+        serverSelectionTimeoutMS=timeout_ms,
+        connectTimeoutMS=timeout_ms,
+    )
+    # server_info will raise on failure; return the result on success
+    return client.server_info()
 
 async def ensure_beanie_initialized():
     """Ensure Beanie is initialized before any database operations"""
     global _beanie_initialized
     if not _beanie_initialized:
         print("Initializing Beanie...")
-        client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
-        
-        # Test the connection
-        await client.admin.command('ping')
-        print("Successfully pinged MongoDB server")
-        
-        database = client[settings.AZURE_COSMOS_DATABASE_NAME]
-        print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
-        
-        await init_beanie(
-            database=database,
-            document_models=__beanie_models__,
-        )
-        print("Beanie initialization completed successfully")
-        _beanie_initialized = True
+        try:
+            client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
+
+            # Test the connection
+            await client.admin.command('ping')
+            print("Successfully pinged MongoDB server")
+
+            database = client[settings.AZURE_COSMOS_DATABASE_NAME]
+            print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
+
+            await init_beanie(
+                database=database,
+                document_models=__beanie_models__,
+            )
+            print("Beanie initialization completed successfully")
+            _beanie_initialized = True
+        except Exception as e:
+            # Log the error but don't crash the application. /db-status will report the problem.
+            import traceback
+            print(f"Beanie initialization failed: {e}")
+            traceback.print_exc()
 
 app = FastAPI(
     description="The Globe API",
@@ -186,17 +237,33 @@ async def startup_event():
     print(f"Connection string set: {bool(settings.AZURE_COSMOS_CONNECTION_STRING)}")
     print(f"Database name: {settings.AZURE_COSMOS_DATABASE_NAME}")
     
-    client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
+    try:
+        # First, run a quick synchronous connection check. In many cases
+        # pymongo.server_info() will provide a clearer success/failure than
+        # an async Motor ping and avoids spurious connection closed errors.
+        try:
+            info = test_sync_connection(settings.AZURE_COSMOS_CONNECTION_STRING)
+            print("Synchronous server_info succeeded:", info.get('version'))
+        except Exception as e:
+            print(f"Synchronous connectivity test failed: {e}")
+            raise
 
-    # Test the connection
-    await client.admin.command('ping')
-    print("Successfully pinged MongoDB server")
+        client = create_motor_client(settings.AZURE_COSMOS_CONNECTION_STRING)
 
-    database = client[settings.AZURE_COSMOS_DATABASE_NAME]
-    print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
-    
-    await init_beanie(
-        database=database,
-        document_models=__beanie_models__,
-    )
-    print("Beanie initialization completed successfully")
+        # Test the connection via Motor
+        await client.admin.command('ping')
+        print("Successfully pinged MongoDB server")
+
+        database = client[settings.AZURE_COSMOS_DATABASE_NAME]
+        print(f"Connected to database: {settings.AZURE_COSMOS_DATABASE_NAME}")
+
+        await init_beanie(
+            database=database,
+            document_models=__beanie_models__,
+        )
+        print("Beanie initialization completed successfully")
+    except Exception as e:
+        # Prevent startup from crashing when DB is unreachable; log and continue.
+        import traceback
+        print(f"Database initialization failed during startup: {e}")
+        traceback.print_exc()

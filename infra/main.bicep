@@ -135,7 +135,7 @@ module accessKeyVault 'br/public:avm/res/key-vault/vault:0.5.1' = {
       {
         objectId: principalId
         permissions: {
-          secrets: [ 'get', 'list' ]
+          secrets: [ 'get', 'list', 'set' ]
         }
       }
     ]

@@ -98,6 +98,10 @@ def _load_agent_id_from_kv() -> Optional[str]:
         return None
 
 
+# In-memory cache to avoid recreating agents within the same process
+_cached_agent_id: Optional[str] = None
+
+
 def _create_project_client() -> "AIProjectClient":
     if AIProjectClient is None:
         raise RuntimeError("azure.ai.projects is not available in the environment")
@@ -138,11 +142,24 @@ def _ensure_agent(project: "AIProjectClient") -> str:
 
     Creating an agent requires AZURE_MODEL to be set (model deployment name).
     """
+    global _cached_agent_id
+
+    # 1) In-memory cache
+    if _cached_agent_id:
+        try:
+            project.agents.get_agent(_cached_agent_id)
+            logger.debug("Using cached agent id")
+            return _cached_agent_id
+        except Exception:
+            logger.debug("Cached agent id invalid, will refresh")
+
+    # 2) Environment or Key Vault
     agent_id = os.getenv("AZURE_AGENT_ID") or _load_agent_id_from_kv()
     if agent_id:
         try:
             project.agents.get_agent(agent_id)
             logger.info("Using existing agent id from env/KV: %s", agent_id)
+            _cached_agent_id = agent_id
             return agent_id
         except Exception:
             # fall through and create
@@ -154,7 +171,11 @@ def _ensure_agent(project: "AIProjectClient") -> str:
 
     logger.info("Creating new agent using model=%s", model_name)
     agent = project.agents.create_agent(model=model_name, name="The Globe Assistant", instructions="You are The Globe's helpful assistant.")
-    _persist_agent_id_to_kv(agent.id)
+    try:
+        _persist_agent_id_to_kv(agent.id)
+    except Exception:
+        logger.debug("Failed to persist agent id to KV (non-fatal)")
+    _cached_agent_id = agent.id
     logger.info("Created agent id=%s", agent.id)
     return agent.id
 

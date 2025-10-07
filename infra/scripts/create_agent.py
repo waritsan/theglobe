@@ -30,9 +30,18 @@ log = logging.getLogger("create-agent")
 # Load config from environment that azd sets during provision
 endpoint = os.getenv("AZURE_AI_ENDPOINT") or os.getenv("AI_FOUNDRY_ACCOUNT_ENDPOINT") or os.getenv("PROJECT_ENDPOINT")
 subscription_id = os.getenv("AZURE_SUBSCRIPTION_ID")
+# resource group may be provided directly, or can be parsed from AI_FOUNDRY_ACCOUNT_ID which is a full resource id
 resource_group = os.getenv("AZURE_RESOURCE_GROUP_NAME") or os.getenv("AZURE_RESOURCE_GROUP")
+if not resource_group:
+    account_id = os.getenv("AI_FOUNDRY_ACCOUNT_ID") or os.getenv("AZURE_COG_ACCOUNT_ID")
+    if account_id and "/resourceGroups/" in account_id:
+        try:
+            resource_group = account_id.split("/resourceGroups/")[1].split("/")[0]
+        except Exception:
+            resource_group = None
 project_name = os.getenv("AZURE_AI_PROJECT_NAME") or os.getenv("AI_FOUNDRY_PROJECT_NAME")
-model_name = os.getenv("AZURE_MODEL")
+# Model name fallback: prefer AZURE_MODEL but fall back to AI_FOUNDRY_DEPLOYMENT_MODEL_NAME
+model_name = os.getenv("AZURE_MODEL") or os.getenv("AI_FOUNDRY_DEPLOYMENT_MODEL_NAME")
 kv_endpoint = os.getenv("AZURE_KEY_VAULT_ENDPOINT")
 
 if not endpoint or not subscription_id or not resource_group or not project_name or not model_name:
