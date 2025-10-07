@@ -7,6 +7,16 @@ workflows:
   up: 
     steps:
       - azd: provision
+      - run: 
+          name: create-ai-agent
+          posix:
+            shell: sh
+            run: |
+              python3 infra/scripts/create_agent.py
+          windows:
+            shell: pwsh
+            run: |
+              python infra/scripts/create_agent.py
       - azd: deploy --all
 services:
   web:
