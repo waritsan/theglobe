@@ -57,6 +57,12 @@ settings = Settings()
 # Global variable to track initialization
 _beanie_initialized = False
 
+# Middleware to ensure Beanie is initialized before processing requests.
+import asyncio
+import json
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
 def create_motor_client(conn_str: str):
     """Create a Motor client. Enable TLS when requested in the connection string.
 
@@ -140,7 +146,7 @@ def test_sync_connection(conn_str: str, timeout_ms: int = 10000):
     # server_info will raise on failure; return the result on success
     return client.server_info()
 
-async def ensure_beanie_initialized():
+async def ensure_beanie_initialized() -> bool:
     """Ensure Beanie is initialized before any database operations"""
     global _beanie_initialized
     if not _beanie_initialized:
@@ -161,11 +167,45 @@ async def ensure_beanie_initialized():
             )
             print("Beanie initialization completed successfully")
             _beanie_initialized = True
+            return True
         except Exception as e:
             # Log the error but don't crash the application. /db-status will report the problem.
             import traceback
             print(f"Beanie initialization failed: {e}")
             traceback.print_exc()
+            return False
+    return True
+
+
+class BeanieInitMiddleware(BaseHTTPMiddleware):
+    """ASGI middleware that ensures Beanie is initialized before handling requests.
+
+    If initialization does not complete within a short timeout, respond with 503.
+    """
+
+    def __init__(self, app, timeout_seconds: int = 15):
+        super().__init__(app)
+        self.timeout_seconds = timeout_seconds
+
+    async def dispatch(self, request, call_next):
+        global _beanie_initialized
+        # Allow non-HTTP scopes through
+        try:
+            if not _beanie_initialized:
+                try:
+                    await asyncio.wait_for(ensure_beanie_initialized(), timeout=self.timeout_seconds)
+                except asyncio.TimeoutError:
+                    return JSONResponse({"status": "error", "error": "database initialization timeout"}, status_code=503)
+                except Exception as e:
+                    return JSONResponse({"status": "error", "error": str(e)}, status_code=503)
+
+                if not _beanie_initialized:
+                    return JSONResponse({"status": "error", "error": "database not initialized"}, status_code=503)
+        except Exception:
+            # If middleware check fails unexpectedly, avoid crashing the whole app.
+            pass
+
+        return await call_next(request)
 
 app = FastAPI(
     description="The Globe API",
@@ -180,6 +220,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register the Beanie init middleware so every incoming HTTP request ensures
+# the DB/Beanie is initialized (or returns 503). This helps serverless
+# environments where startup events may not complete before the first
+# invocation.
+app.add_middleware(BeanieInitMiddleware)
 
 if settings.APPLICATIONINSIGHTS_CONNECTION_STRING:
     exporter = AzureMonitorTraceExporter.from_connection_string(

@@ -150,8 +150,13 @@ def _ensure_agent(project: "AIProjectClient") -> str:
             project.agents.get_agent(_cached_agent_id)
             logger.debug("Using cached agent id")
             return _cached_agent_id
-        except Exception:
-            logger.debug("Cached agent id invalid, will refresh")
+        except Exception as e:
+            # Check if it's a 404 (agent was deleted) and clear cache
+            if "404" in str(e) or "not found" in str(e).lower():
+                logger.warning("Cached agent id %s not found (404), will create new agent", _cached_agent_id)
+                _cached_agent_id = None
+            else:
+                logger.debug("Cached agent id invalid, will refresh: %s", e)
 
     # 2) Environment or Key Vault
     agent_id = os.getenv("AZURE_AGENT_ID") or _load_agent_id_from_kv()
@@ -161,20 +166,28 @@ def _ensure_agent(project: "AIProjectClient") -> str:
             logger.info("Using existing agent id from env/KV: %s", agent_id)
             _cached_agent_id = agent_id
             return agent_id
-        except Exception:
+        except Exception as e:
+            # Check if it's a 404 and log clearly
+            if "404" in str(e) or "not found" in str(e).lower():
+                logger.warning("Agent id %s from env/KV not found (404), will create new agent", agent_id)
+            else:
+                logger.debug("Agent validation failed: %s", e)
             # fall through and create
-            pass
 
     model_name = os.getenv("AZURE_MODEL")
     if not model_name:
         raise RuntimeError("AZURE_MODEL (deployment name) is required to create an agent")
 
     logger.info("Creating new agent using model=%s", model_name)
-    agent = project.agents.create_agent(model=model_name, name="The Globe Assistant", instructions="You are The Globe's helpful assistant.")
+    try:
+        agent = project.agents.create_agent(model=model_name, name="The Globe Assistant", instructions="You are The Globe's helpful assistant.")
+    except Exception as create_err:
+        logger.error("Failed to create agent with model=%s: %s", model_name, create_err, exc_info=True)
+        raise RuntimeError(f"Failed to create agent: {create_err}") from create_err
     try:
         _persist_agent_id_to_kv(agent.id)
-    except Exception:
-        logger.debug("Failed to persist agent id to KV (non-fatal)")
+    except Exception as kv_err:
+        logger.debug("Failed to persist agent id to KV (non-fatal): %s", kv_err)
     _cached_agent_id = agent.id
     logger.info("Created agent id=%s", agent.id)
     return agent.id
